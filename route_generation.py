@@ -38,9 +38,9 @@ if __name__ == "__main__":
     # Specifying the number of nodes in region
     total_nodes = 10
     
-    # Populating dictionary with edges to form a fully connected, undirected graph
+    # Populating dictionary with edges to form a fully connected, undirected graph without self-loops
     for i in range(1,total_nodes+1):
-        graph[i] = list(range(1,11))
+        graph[i] = list(range(1,total_nodes+1))
         graph[i].pop(i-1)
 
     # Generating cycles for the conditions specified
