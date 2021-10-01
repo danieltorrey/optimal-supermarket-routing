@@ -2,17 +2,27 @@ import numpy as np
 import pandas as pd
 
 
-def find_all_paths(graph, start, end):
+def find_paths(graph, start, end):
+
+    # Initialising paths list
     paths = [(start, [])]
+
     while paths:
-        state, path = paths.pop()
-        if path and state == end:
+        # Removing the top-most node from the paths list to initialise the current node being scanned and path being created
+        current_node, path = paths.pop()
+
+        # Checking whether the node has reached the end of the path
+        if path and current_node == end:
             yield path
             continue
-        for next_state in graph[state]:
-            if next_state in path:
+        
+        # Checking whether the next node is in the path
+        for next_node in graph[current_node]:
+            # If so, repeat function
+            if next_node in path:
                 continue
-            paths.append((next_state, path+[next_state]))
+            # If not, append current path to paths list
+            paths.append((next_node, path+[next_node]))
 
 
 if __name__ == "__main__":
@@ -25,16 +35,18 @@ if __name__ == "__main__":
     cycle_length = 5
     # Specifying the Woolworths Distribution Centre node (i.e. node that cycle starts and ends on)
     DC_node = 1
+    # Specifying the number of nodes in region
+    total_nodes = 10
     
     # Populating dictionary with edges to form a fully connected, undirected graph
-    for i in range(1,11):
+    for i in range(1,total_nodes+1):
         graph[i] = list(range(1,11))
         graph[i].pop(i-1)
 
     # Generating cycles for the conditions specified
     for node in graph:
         if (node == DC_node):
-            for path in find_all_paths(graph, node, node):
+            for path in find_paths(graph, node, node):
                 if (len(path) == cycle_length):
                     cycles.append([node]+path)
     
