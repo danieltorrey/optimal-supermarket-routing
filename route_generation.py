@@ -26,26 +26,16 @@ def find_paths(graph, start, end):
             # If not, append current path to paths list
             paths.append((next_node, path+[next_node]))
 
-#def path_to_matrix(graph, cycles, nodes):
+def route_matrix(paths, total_nodes):
 
-    # Initialising cycles matrix list
-    #cycles_matrix = []
+    # Initialising matrix for each path
+    route_matrix = np.zeros(shape=(total_nodes,len(paths)))
     
-    #for node in graph:
-        # Initialising matrix for each path
-        #matrix = np.zeros((total_nodes,total_nodes), int)
+    for path in paths:
+        for node in path:
+            route_matrix[node-1][paths.index(path)] = 1
 
-        #for i in range(total_nodes):
-            #for j in cycles[i]:
-                #matrix[i][j] = 1
-
-        #cycles_matrix.append(matrix)
-    
-
-    
-    #print(cycles_matrix)
-
-    #return 
+    return route_matrix
     
 
 if __name__ == "__main__":
@@ -74,10 +64,10 @@ if __name__ == "__main__":
 
     # Initialisation of graph dictionary and cycles list
     graph = {}
-    cycles = []
+    paths = []
 
     # Specifying the maxmimum amount of stores to be visited (excluding distribution centre)
-    max_length = 4
+    max_length = 1
     # Specifying the Woolworths Distribution Centre node (i.e. node that cycle starts and ends on)
     DC_node = 1
     # Specifying the number of nodes in region
@@ -92,14 +82,16 @@ if __name__ == "__main__":
         if (node == DC_node):
             for path in find_paths(graph, node, node):
                 if (len(path) < max_length+2):
-                    cycles.append([node]+path)
+                    paths.append([node]+path)
     
-    # Printing all possible cycles
-    print('\nCycles:') 
-    print(cycles)
+    # Printing all possible paths
+    print('\nPaths:') 
+    print(paths)
     
-    # Printing the number of all possible cycles
-    print('\nNumber of Cycles:')
-    print(str(len(cycles)) + '\n')
+    # Printing the number of all possible paths
+    print('\nNumber of Paths:')
+    print(str(len(paths)) + '\n')
 
-    #path_to_matrix(graph, cycles, total_nodes)
+    route_matrix = route_matrix(paths, total_nodes)
+    print('Route Matrix:')
+    print(route_matrix)
