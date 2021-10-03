@@ -4,6 +4,26 @@ from pulp import *
 from itertools import combinations
 
 
+def create_paths(max_length, DC_node, total_nodes):
+
+    # Initialisation of graph dictionary and cycles list
+    graph = {}
+    paths = []
+
+    # Populating dictionary with edges to form a fully connected, undirected graph without self-loops
+    for i in range(1,total_nodes+1):
+        graph[i] = list(range(1,total_nodes+1))
+
+    # Generating all possible paths for the conditions specified
+    for node in graph:
+        if (node == DC_node):
+            for path in find_paths(graph, node, node):
+                if (len(path) < max_length+2):
+                    paths.append([node]+path)
+
+    return paths
+
+
 def find_paths(graph, start, end):
 
     # Initialising paths list
@@ -25,6 +45,7 @@ def find_paths(graph, start, end):
                 continue
             # If not, append current path to paths list
             paths.append((next_node, path+[next_node]))
+
 
 def route_matrix(paths, total_nodes):
 
@@ -62,36 +83,27 @@ if __name__ == "__main__":
         else:
             reg6[store_name] = i+1
 
-    # Initialisation of graph dictionary and cycles list
-    graph = {}
-    paths = []
-
     # Specifying the maxmimum amount of stores to be visited (excluding distribution centre)
     max_length = 1
     # Specifying the Woolworths Distribution Centre node (i.e. node that cycle starts and ends on)
     DC_node = 1
     # Specifying the number of nodes in region
     total_nodes = 10
-    
-    # Populating dictionary with edges to form a fully connected, undirected graph without self-loops
-    for i in range(1,total_nodes+1):
-        graph[i] = list(range(1,total_nodes+1))
 
-    # Generating cycles for the conditions specified
-    for node in graph:
-        if (node == DC_node):
-            for path in find_paths(graph, node, node):
-                if (len(path) < max_length+2):
-                    paths.append([node]+path)
+    # Creating all possible paths from the conditions specified
+    paths = create_paths(max_length, DC_node, total_nodes)
+
+    # Creating a route matrix from the paths
+    route_matrix = route_matrix(paths, total_nodes)
     
-    # Printing all possible paths
+    # Printing all paths
     print('\nPaths:') 
     print(paths)
     
-    # Printing the number of all possible paths
+    # Printing the number of paths
     print('\nNumber of Paths:')
     print(str(len(paths)) + '\n')
 
-    route_matrix = route_matrix(paths, total_nodes)
+    # Printing the route matrix for each of the paths
     print('Route Matrix:')
     print(route_matrix)
