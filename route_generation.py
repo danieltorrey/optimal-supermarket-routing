@@ -66,22 +66,22 @@ if __name__ == "__main__":
 
     reg1, reg2, reg3, reg4, reg5, reg6 = {}, {}, {}, {}, {}, {}
 
-    for i in range(len(data)-1):
-        store_name = str(data.iloc[i]['Store'])
-        region_number = int(data.iloc[i]['Region'])
+    for i in range(1,len(data)-1):
+        store_name = str(data.iloc[i-1]['Store'])
+        region_number = int(data.iloc[i-1]['Region'])
         
         if region_number == 1:
-            reg1[store_name] = i+1
+            reg1[store_name] = i
         elif region_number == 2:
-            reg2[store_name] = i+1
+            reg2[store_name] = i
         elif region_number == 3:
-            reg3[store_name] = i+1
+            reg3[store_name] = i
         elif region_number == 4:
-            reg4[store_name] = i+1
+            reg4[store_name] = i
         elif region_number == 5:
-            reg5[store_name] = i+1
+            reg5[store_name] = i
         else:
-            reg6[store_name] = i+1
+            reg6[store_name] = i
 
     # Specifying the maxmimum amount of stores to be visited (excluding distribution centre)
     max_length = 1
