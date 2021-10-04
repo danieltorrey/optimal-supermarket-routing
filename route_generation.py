@@ -1,65 +1,44 @@
+from typing import final
 import numpy as np
 import pandas as pd
 from pulp import *
-from itertools import combinations
+import itertools
 
 
-def create_routes(max_length, region):
+def create_routes(region):
 
     # Initialisation of graph dictionary and routes list
-    graph = {}
     routes = []
     nodes = []
 
     for _,v in region.items():
         nodes.append(int(v))
-
-    # Populating dictionary with edges to form a fully connected, undirected graph without self-loops
-    for i in nodes:
-        graph[i] = list(nodes)
     
     # Specifying the Woolworths Distribution Centre node (i.e. node that cycle starts and ends on)
-    DC_node = nodes[-1]
-
-    print('\n')
-    print(nodes)
-    print('\n')
-    print(graph)
-    print('\n')
-    print(DC_node)
+    DC = nodes[-1]
 
     # Generating all possible routes for the conditions specified
-    for node in graph:
-        if (node == DC_node):
-            for route in find_routes(graph, node, node):
-                if (len(route) < max_length):
-                    routes.append([node]+route)
-                    print(routes)
+    for n1 in nodes:
+        for n2 in nodes:
+            for n3 in nodes:
+                for n4 in nodes:
+                    if n1!=DC and n2!=DC and n3!=DC and n4!=DC and n1!=n2 and n2!=n3 and n3!=n4 and n1!=n3 and n1!=n4 and n2!=n4:
+                        routes.append([DC, n1, n2, n3, n4, DC])
+                        routes.append([DC, n1, n2, n3, DC])
+                        routes.append([DC, n1, n2, DC])
+                        routes.append([DC, n1, DC])
     
+    final_routes = []
+    for elem in routes:
+        if elem not in final_routes:
+            final_routes.append(elem)
+    routes = final_routes
+
+    print('\n')
+    print('Number of Routes: ')
+    print(len(routes))
+
     return routes
-
-
-def find_routes(graph, start, end):
-
-    # Initialising routes list
-    routes = [(start, [])]
-
-    while routes:
-        # Removing the top-most node from the routes list to initialise the current node being scanned and route being created
-        current_node, route = routes.pop()
-
-        # Checking whether the node has reached the end of the route
-        if route and current_node == end:
-            yield route
-            continue
-        
-        # Checking whether the next node is in the route
-        for next_node in graph[current_node]:
-            # If so, repeat function
-            if next_node in route:
-                continue
-            # If not, append current route to routes list
-            routes.append((next_node, route+[next_node]))
 
 
 def route_matrix(routes, total_nodes):
@@ -67,6 +46,8 @@ def route_matrix(routes, total_nodes):
     # Initialising matrix for each route
     route_matrix = np.zeros(shape=(total_nodes,len(routes)))
     
+    # Saving a value of 1 to positions in the matrix
+    # Rows correspond to node number and columns correspond to each route
     for route in routes:
         for node in route:
             route_matrix[node-1][routes.index(route)] = 1
@@ -76,11 +57,14 @@ def route_matrix(routes, total_nodes):
 
 if __name__ == "__main__":
 
+    # Reading in the data from the csv file
     data = pd.read_csv('WoolworthsStores.csv')
     data = data[0:66]
 
+    # Initialising dictionaries for each of the regions
     reg1, reg2, reg3, reg4, reg5, reg6 = {}, {}, {}, {}, {}, {}
 
+    # Saving the store name and its corresponding region for each store to a dictionary
     for i in range(1,len(data)+1):
         store_name = str(data.iloc[i-1]['Store'])
         region_number = int(data.iloc[i-1]['Region'])
@@ -97,6 +81,7 @@ if __name__ == "__main__":
             reg5[store_name] = i
         elif region_number == 6:
             reg6[store_name] = i
+        # Saving the distribution centre node as the last node in each region
         elif region_number == 7:
             reg1[store_name] = i
             reg2[store_name] = i
@@ -105,22 +90,19 @@ if __name__ == "__main__":
             reg5[store_name] = i
             reg6[store_name] = i
 
-    # Specifying the maxmimum amount of stores to be visited (excluding distribution centre)
-    max_length = 1
-
     # Creating all possible routes for each region from the conditions specified
-    #reg1_routes = create_routes(max_length, reg1)
-    #reg2_routes = create_routes(max_length, reg2)
-    #reg3_routes = create_routes(max_length, reg3)
-    #reg4_routes = create_routes(max_length, reg4)
-    #reg5_routes = create_routes(max_length, reg5)
-    reg6_routes = create_routes(max_length, reg6)
-    print('\nRoutes:') 
-    print(reg6_routes)
+    reg1_routes = create_routes(reg1)
+    print('Region 1 Completed')
+    reg2_routes = create_routes(reg2)
+    print('Region 2 Completed')
+    reg3_routes = create_routes(reg3)
+    print('Region 3 Completed')
+    reg4_routes = create_routes(reg4)
+    print('Region 4 Completed')
+    reg5_routes = create_routes(reg5)
+    print('Region 5 Completed')
+    reg6_routes = create_routes(reg6)
+    print('Region 6 Completed')
 
     # Creating a route matrix from the routes
-    #route_matrix = route_matrix(routes, reg6)
-
-    # Printing the route matrix for each of the routes
-    #print('Route Matrix:')
-    #print(route_matrix)
+    #route_matrix = route_matrix(reg6_routes, reg6)
