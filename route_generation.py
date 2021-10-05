@@ -23,8 +23,9 @@ def create_routes(region):
         for n2 in nodes:
             for n3 in nodes:
                 for n4 in nodes:
+                    # Preventing repeat nodes
                     if n1!=n2 and n2!=n3 and n3!=n4 and n1!=n3 and n1!=n4 and n2!=n4:
-
+                        # Accounting for routes of lengths four or lower
                         if [DC, n1, n2, n3, n4, DC] not in routes:
                             routes.append([DC, n1, n2, n3, n4, DC])
                         if [DC, n1, n2, n3, DC] not in routes:
@@ -55,6 +56,20 @@ def route_matrix(routes, region):
 
     return route_matrix
     
+
+def cost_matrix(routes):
+
+    route_costs = {}
+    for route in routes:
+        route_cost = 0 
+        for node in route:
+            while route.index(node+1) != route(-1):
+                #cost = cost from route.index(node) to route.index(node+1)
+                route_cost = route_cost #+ cost
+        route_costs[route] = route_cost
+
+    return route_costs
+
 
 if __name__ == "__main__":
 
@@ -117,15 +132,15 @@ if __name__ == "__main__":
     print('Number of Routes: ' + str(len(reg6_routes)) + '\n')
 
     # Creating route matrices from each of the routes for each region
-    reg1_route_matrix = route_matrix(reg1_routes, reg1)
-    print('Region 1 Route Matrix Completed')
-    reg2_route_matrix = route_matrix(reg2_routes, reg2)
-    print('Region 2 Route Matrix Completed')
-    reg3_route_matrix = route_matrix(reg3_routes, reg3)
-    print('Region 3 Route Matrix Completed')
-    reg4_route_matrix = route_matrix(reg4_routes, reg4)
-    print('Region 4 Route Matrix Completed')
-    reg5_route_matrix = route_matrix(reg5_routes, reg5)
-    print('Region 5 Route Matrix Completed')
-    reg6_route_matrix = route_matrix(reg6_routes, reg6)
-    print('Region 6 Route Matrix Completed')
+    #reg1_route_matrix = route_matrix(reg1_routes, reg1)
+    #print('Region 1 Route Matrix Completed')
+    #reg2_route_matrix = route_matrix(reg2_routes, reg2)
+    #print('Region 2 Route Matrix Completed')
+    #reg3_route_matrix = route_matrix(reg3_routes, reg3)
+    #print('Region 3 Route Matrix Completed')
+    #reg4_route_matrix = route_matrix(reg4_routes, reg4)
+    #print('Region 4 Route Matrix Completed')
+    #reg5_route_matrix = route_matrix(reg5_routes, reg5)
+    #print('Region 5 Route Matrix Completed')
+    #reg6_route_matrix = route_matrix(reg6_routes, reg6)
+    #print('Region 6 Route Matrix Completed')
