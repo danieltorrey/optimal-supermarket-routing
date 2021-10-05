@@ -73,7 +73,6 @@ def cost_matrix(routes):
     DC = 66
 
     for route in routes:
-        route = [66, 4, 66]
         # Initialising individual route cost variable
         route_cost = 0 
 
