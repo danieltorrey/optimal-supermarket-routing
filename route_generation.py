@@ -24,17 +24,15 @@ def create_routes(region):
             for n3 in nodes:
                 for n4 in nodes:
                     if n1!=n2 and n2!=n3 and n3!=n4 and n1!=n3 and n1!=n4 and n2!=n4:
-                        routes.append([DC, n1, n2, n3, n4, DC])
-                        routes.append([DC, n1, n2, n3, DC])
-                        routes.append([DC, n1, n2, DC])
-                        routes.append([DC, n1, DC])
-    
-    # Removing duplicates from the routes list
-    final_routes = []
-    for elem in routes:
-        if elem not in final_routes:
-            final_routes.append(elem)
-    routes = final_routes
+
+                        if [DC, n1, n2, n3, n4, DC] not in routes:
+                            routes.append([DC, n1, n2, n3, n4, DC])
+                        if [DC, n1, n2, n3, DC] not in routes:
+                            routes.append([DC, n1, n2, n3, DC])
+                        if [DC, n1, n2, DC] not in routes:
+                            routes.append([DC, n1, n2, DC])
+                        if [DC, n1, DC] not in routes:
+                            routes.append([DC, n1, DC])
 
     return routes
 
