@@ -58,22 +58,30 @@ def route_matrix(routes, region):
     
 
 def cost_matrix(routes):
-
+    
+    # Reading in the durations data from the csv file
     durations = pd.read_csv('WoolworthsTravelDurations.csv')
+    # Initialising region route costs dictionary and route number variable
     route_costs = {}
-
     route_number = 1
+
     for route in routes:
+        # Initialising individual route cost variable
         route_cost = 0 
 
         for node in route:
+            # Setting index of current node being scanned
             i = route.index(node)
 
+            # Checking whether node is the last node in the route
             if i != len(route)-1:
+                # Finding cost from current node to next node and adding to total route cost variable
                 cost = durations.loc[node-1][route[i+1]]
                 route_cost += cost
         
+        # Appending individual route cost to region route costs dictionary
         route_costs[route_number] = route_cost
+        # Incrementing route number
         route_number += 1
 
     return route_costs
