@@ -59,14 +59,22 @@ def route_matrix(routes, region):
 
 def cost_matrix(routes):
 
+    durations = pd.read_csv('WoolworthsTravelDurations.csv')
     route_costs = {}
+
+    route_number = 1
     for route in routes:
         route_cost = 0 
+
         for node in route:
-            while route.index(node+1) != route(-1):
-                #cost = cost from route.index(node) to route.index(node+1)
-                route_cost = route_cost #+ cost
-        route_costs[route] = route_cost
+            i = route.index(node)
+
+            if i != len(route)-1:
+                cost = durations.loc[node-1][route[i+1]]
+                route_cost += cost
+        
+        route_costs[route_number] = route_cost
+        route_number += 1
 
     return route_costs
 
@@ -108,28 +116,32 @@ if __name__ == "__main__":
 
     # Creating all possible routes for each region from the conditions specified
     reg1_routes = create_routes(reg1)
+
     print('\nRegion 1 Routes Completed')
     print('Number of Routes: ' + str(len(reg1_routes)) + '\n')
 
-    reg2_routes = create_routes(reg2)
-    print('Region 2 Routes Completed')
-    print('Number of Routes: ' + str(len(reg2_routes)) + '\n')
+    reg1_cost = cost_matrix(reg1_routes)
+    print(reg1_cost)
+
+    #reg2_routes = create_routes(reg2)
+    #print('Region 2 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg2_routes)) + '\n')
     
-    reg3_routes = create_routes(reg3)
-    print('Region 3 Routes Completed')
-    print('Number of Routes: ' + str(len(reg3_routes)) + '\n')
+    #reg3_routes = create_routes(reg3)
+    #print('Region 3 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg3_routes)) + '\n')
 
-    reg4_routes = create_routes(reg4)
-    print('Region 4 Routes Completed')
-    print('Number of Routes: ' + str(len(reg4_routes)) + '\n')
+    #reg4_routes = create_routes(reg4)
+    #print('Region 4 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg4_routes)) + '\n')
 
-    reg5_routes = create_routes(reg5)
-    print('Region 5 Routes Completed')
-    print('Number of Routes: ' + str(len(reg5_routes)) + '\n')
+    #reg5_routes = create_routes(reg5)
+    #print('Region 5 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg5_routes)) + '\n')
 
-    reg6_routes = create_routes(reg6)
-    print('Region 6 Routes Completed')
-    print('Number of Routes: ' + str(len(reg6_routes)) + '\n')
+    #reg6_routes = create_routes(reg6)
+    #print('Region 6 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg6_routes)) + '\n')
 
     # Creating route matrices from each of the routes for each region
     #reg1_route_matrix = route_matrix(reg1_routes, reg1)
