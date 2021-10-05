@@ -164,3 +164,5 @@ if __name__ == "__main__":
     #print('Region 5 Route Matrix Completed')
     #reg6_route_matrix = route_matrix(reg6_routes, reg6)
     #print('Region 6 Route Matrix Completed')
+
+    print('hello')
