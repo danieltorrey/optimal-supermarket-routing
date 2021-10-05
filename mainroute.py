@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from pulp import *
 import itertools
+import math
 
 
 def create_routes(region):
@@ -23,8 +24,9 @@ def create_routes(region):
         for n2 in nodes:
             for n3 in nodes:
                 for n4 in nodes:
+                    # Preventing repeat nodes
                     if n1!=n2 and n2!=n3 and n3!=n4 and n1!=n3 and n1!=n4 and n2!=n4:
-
+                        # Accounting for routes of lengths four or lower
                         if [DC, n1, n2, n3, n4, DC] not in routes:
                             routes.append([DC, n1, n2, n3, n4, DC])
                         if [DC, n1, n2, n3, DC] not in routes:
@@ -54,27 +56,65 @@ def route_matrix(routes, region):
             route_matrix[nodes.index(node)][routes.index(route)] = 1
 
     return route_matrix
+    
 
 def cost_matrix(routes):
+    
+    # Reading in the durations data from the csv file
+    durations = pd.read_csv('WoolworthsTravelDurations.csv')
 
-    durations = pd.read_csv('WoolworthsTravelDurations1.csv')
-    print(durations)
+    # Reading the dataset containg average pallete demand estimate
+    average = pd.read_csv('WoolworthsStores.csv')
+
+    # Initialising region route costs dictionary and route number variable
+    route_costs = {}
+    route_number = 1
+
     DC = 66
 
-    route_costs = {}
     for route in routes:
+        route = [66, 4, 66]
+        # Initialising individual route cost variable
         route_cost = 0 
+
+        # Initialising total duration required for route
+        total_dur = 0
+
         for node in route:
-            i = route.index(node)
-            ind = route[i+1]
-            if route[i+1] == DC or route[i] == DC:
-                ind = route[i+1]+1
-            if route.index(node) != -1:
-                print(durations.loc[node-1][ind])
-                cost = durations.loc[node-1][ind]
-                #cost = cost from route.index(node) to route.index(node+1)
-                route_cost += cost
-        route_costs[route] = route_cost
+            # Setting index of current node being scanned
+            if total_dur == 0:
+                i = route.index(node)
+            else:
+                i += 1 
+
+            # Checking whether node is the last node in the route
+            if i != len(route)-1:
+                # Finding cost from current node to next node and adding to total route cost variable
+                travel_dur = float(durations.loc[node-1][route[i+1]])/3600   # in hours
+
+                # If destination node not DC, will read in the r
+                if route[i+1] != DC:
+                    pallet_dur = float(average.loc[route[i+1]-1][1])*(7.5/60)
+                else:
+                    pallet_dur = 0
+
+
+                dur = travel_dur + pallet_dur
+                total_dur += dur
+        
+        cost = 900
+
+        if total_dur > 4:
+            extra_dur = math.ceil(total_dur-4)
+            cost = cost + (extra_dur*275)
+                
+        route_cost = cost
+
+
+        # Appending individual route cost to region route costs dictionary
+        route_costs[route_number] = route_cost
+        # Incrementing route number
+        route_number += 1
 
     return route_costs
 
@@ -117,31 +157,32 @@ if __name__ == "__main__":
     # Creating all possible routes for each region from the conditions specified
     reg1_routes = create_routes(reg1)
     print(reg1_routes)
+
     print('\nRegion 1 Routes Completed')
     print('Number of Routes: ' + str(len(reg1_routes)) + '\n')
 
-    reg1_costs = cost_matrix(reg1_routes)
-    print(reg1_costs)
+    reg1_cost = cost_matrix(reg1_routes)
+    print(reg1_cost)
 
-    reg2_routes = create_routes(reg2)
-    print('Region 2 Routes Completed')
-    print('Number of Routes: ' + str(len(reg2_routes)) + '\n')
+    #reg2_routes = create_routes(reg2)
+    #print('Region 2 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg2_routes)) + '\n')
     
-    reg3_routes = create_routes(reg3)
-    print('Region 3 Routes Completed')
-    print('Number of Routes: ' + str(len(reg3_routes)) + '\n')
+    #reg3_routes = create_routes(reg3)
+    #print('Region 3 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg3_routes)) + '\n')
 
-    reg4_routes = create_routes(reg4)
-    print('Region 4 Routes Completed')
-    print('Number of Routes: ' + str(len(reg4_routes)) + '\n')
+    #reg4_routes = create_routes(reg4)
+    #print('Region 4 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg4_routes)) + '\n')
 
-    reg5_routes = create_routes(reg5)
-    print('Region 5 Routes Completed')
-    print('Number of Routes: ' + str(len(reg5_routes)) + '\n')
+    #reg5_routes = create_routes(reg5)
+    #print('Region 5 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg5_routes)) + '\n')
 
-    reg6_routes = create_routes(reg6)
-    print('Region 6 Routes Completed')
-    print('Number of Routes: ' + str(len(reg6_routes)) + '\n')
+    #reg6_routes = create_routes(reg6)
+    #print('Region 6 Routes Completed')
+    #print('Number of Routes: ' + str(len(reg6_routes)) + '\n')
 
     # Creating route matrices from each of the routes for each region
     #reg1_route_matrix = route_matrix(reg1_routes, reg1)
