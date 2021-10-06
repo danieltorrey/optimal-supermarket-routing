@@ -64,7 +64,7 @@ def cost_matrix(routes):
     durations = pd.read_csv('WoolworthsTravelDurations.csv')
 
     # Reading the dataset containg average pallete demand estimate
-    average = pd.read_csv('WoolworthsStores.csv')
+    demand = pd.read_csv('WoolworthsStores.csv')
 
     # Initialising region route costs dictionary and route number variable
     route_costs = {}
@@ -73,9 +73,6 @@ def cost_matrix(routes):
     DC = 66
 
     for route in routes:
-        # Initialising individual route cost variable
-        route_cost = 0 
-
         # Initialising total duration required for route
         total_dur = 0
 
@@ -91,24 +88,26 @@ def cost_matrix(routes):
                 # Finding cost from current node to next node and adding to total route cost variable
                 travel_dur = float(durations.loc[node-1][route[i+1]])/3600   # in hours
 
-                # If destination node not DC, will read in the r
+                # If the destination node is not the DC nide, the pallet duration will be read in
                 if route[i+1] != DC:
-                    pallet_dur = float(average.loc[route[i+1]-1][1])*(7.5/60)
+                    pallet_dur = float(demand.loc[route[i+1]-1][1])*(7.5/60)
                 else:
                     pallet_dur = 0
 
-
+                # Duration is calculated from node to node and then added to total duration
                 dur = travel_dur + pallet_dur
                 total_dur += dur
-        
-        cost = 900
 
+        # Calculating cost for route
+        if math.ceil(total_dur) >= 4:
+            route_cost = 900
+        else: 
+            route_cost = math.ceil(total_dur) * 225
+
+        # Calculating additional costs if time exceeds 4 hours
         if total_dur > 4:
             extra_dur = math.ceil(total_dur-4)
-            cost = cost + (extra_dur*275)
-                
-        route_cost = cost
-
+            route_cost = route_cost + (extra_dur * 275)
 
         # Appending individual route cost to region route costs dictionary
         route_costs[route_number] = route_cost
@@ -161,10 +160,7 @@ if __name__ == "__main__":
     print('Number of Routes: ' + str(len(reg1_routes)) + '\n')
 
     reg1_cost = cost_matrix(reg1_routes)
-    print(reg1_cost[3211])
-
-
-
+    #print(reg1_cost[3211])
     visit_matrix = route_matrix(reg1_routes, reg1)
     #print(visit_matrix)
 
@@ -175,7 +171,7 @@ if __name__ == "__main__":
     prob = LpProblem("The Route Problem", LpMinimize)
 
     route_vars = LpVariable.dicts("Route", route, cat='Binary')
-
+    
     #print(route_vars)
 
     
