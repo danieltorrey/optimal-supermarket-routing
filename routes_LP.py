@@ -154,7 +154,7 @@ def lp_region(region, region_no):
         prob += lpSum([con_dict[i]*route_vars[i] for i in route_vars]) == 1, "Node_{}".format(row)
     
     # Calculating amount of truck routes available
-    trucks = round(len(region))
+    trucks = round((len(region)/65)*60)
     
     # Truck Constraint
     prob += lpSum([1*route_vars[i] for i in route_vars]) == trucks, "Truck Constraint"
