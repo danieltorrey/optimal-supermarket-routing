@@ -4,6 +4,7 @@ import pandas as pd
 from pulp import *
 import itertools
 import math
+import re
 
 
 def create_routes(region):
@@ -163,18 +164,29 @@ def lp_region(region, region_no):
 
     prob.solve()
 
-    sys.stdout = open("{}".format(region_no), "w")
+    # Txt file to output LP results
+    sys.stdout = open("Routes Region_{}".format(region_no), "w")
 
     print("Status:", LpStatus[prob.status])
 
     for v in prob.variables():
         if v.varValue == 1.0:
             print(v.name, "=", v.varValue)
-
+    
     print("Total Cost from Routes = ", value(prob.objective))
 
     sys.stdout.close()
 
+    # Txt file for actual route numbers
+    sys.stdout = open("Nodes Visited_{}".format(region_no), "w")
+
+    # To give route sequences
+    for v in prob.variables():
+        if v.varValue == 1.0:
+            route_num = int(re.search(r'\d+', v.name).group())
+            print(reg_routes[route_num])
+
+    sys.stdout.close()
 
 if __name__ == "__main__":
 
@@ -210,6 +222,7 @@ if __name__ == "__main__":
             reg4[store_name] = i
             reg5[store_name] = i
             reg6[store_name] = i
+
 
     # Optimising the routes for each region
     reg1_lp = lp_region(reg1, 1)
