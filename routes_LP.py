@@ -58,7 +58,7 @@ def route_matrix(routes, region):
     return route_matrix
     
 
-def cost_matrix(routes):
+def cost_route(routes):
     
     # Reading in the durations data from the csv file
     durations = pd.read_csv('WoolworthsTravelDurations.csv')
@@ -73,8 +73,6 @@ def cost_matrix(routes):
     DC = 66
 
     for route in routes:
-        # Initialising individual route cost variable
-        route_cost = 0 
 
         # Initialising total duration required for route
         total_dur = 0
@@ -98,18 +96,20 @@ def cost_matrix(routes):
                 else:
                     pallet_dur = 0
 
-
+                # Duration is calculated from node to node and then added to total duration
                 dur = travel_dur + pallet_dur
                 total_dur += dur
-        
-        cost = 900
 
+        # Calculating cost for route
+        if math.ceil(total_dur) >= 4:
+            route_cost = 900
+        else: 
+            route_cost = math.ceil(total_dur) * 225
+
+        # Calculating additional costs if time exceeds 4 hours
         if total_dur > 4:
             extra_dur = math.ceil(total_dur-4)
-            cost = cost + (extra_dur*275)
-                
-        route_cost = cost
-
+            route_cost = route_cost + (extra_dur * 275)
 
         # Appending individual route cost to region route costs dictionary
         route_costs[route_number] = route_cost
@@ -128,7 +128,7 @@ def lp_region(region, region_no):
     visit_matrix = route_matrix(reg_routes, region)
 
     # Creating cost matrix for each region
-    reg_cost = cost_matrix(reg_routes)
+    reg_cost = cost_route(reg_routes)
 
     # Setting up route variable for LP
     route = {}
@@ -176,11 +176,6 @@ def lp_region(region, region_no):
     sys.stdout.close()
 
 
-
-
-
-
-
 if __name__ == "__main__":
 
     # Reading in the data from the csv file
@@ -216,12 +211,10 @@ if __name__ == "__main__":
             reg5[store_name] = i
             reg6[store_name] = i
 
-    
-    cost = lp_region(reg1, 1)
-    cost = lp_region(reg2, 2)
-    cost = lp_region(reg3, 3)
-    cost = lp_region(reg4, 4)
-    cost = lp_region(reg5, 5)
-    cost = lp_region(reg6, 6)
-    
-    
+    # Optimising the routes for each region
+    reg1_lp = lp_region(reg1, 1)
+    reg2_lp = lp_region(reg2, 2)
+    reg3_lp = lp_region(reg3, 3)
+    reg4_lp = lp_region(reg4, 4)
+    reg5_lp = lp_region(reg5, 5)
+    reg6_lp = lp_region(reg6, 6)
