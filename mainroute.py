@@ -155,14 +155,62 @@ if __name__ == "__main__":
 
     # Creating all possible routes for each region from the conditions specified
     reg1_routes = create_routes(reg1)
-    print(reg1_routes)
+    #print(reg1_routes)
 
     print('\nRegion 1 Routes Completed')
     print('Number of Routes: ' + str(len(reg1_routes)) + '\n')
 
     reg1_cost = cost_matrix(reg1_routes)
-    print(reg1_cost)
+    print(reg1_cost[3211])
 
+
+
+    visit_matrix = route_matrix(reg1_routes, reg1)
+    #print(visit_matrix)
+
+    route = {}
+    for k, v in reg1_cost.items():
+        route[k] = k
+    
+    prob = LpProblem("The Route Problem", LpMinimize)
+
+    route_vars = LpVariable.dicts("Route", route, 0)
+
+    #print(route_vars)
+
+    
+    # Objective function
+    prob += lpSum([reg1_cost[i]*route_vars[i] for i in route_vars]), "Route Optimisation Function"
+
+
+    # Constraints
+    #num = []
+    #for i in range(1, len(route_vars)+1):
+        ##string = "{}".format(i)
+        #num.append(string)
+    
+    #print(num) 
+    num = list(range(1, len(route_vars)+1))
+    
+
+    for row in range(np.shape(visit_matrix)[0]):
+        con = pd.Series(visit_matrix[row], index = num)
+        con_dict = dict(con)
+        prob += lpSum([con_dict[i]*route_vars[i] for i in route_vars]) == 1, "Node_{}".format(row)
+    
+    prob += lpSum([1*route_vars[i] for i in route_vars]) == 10, "Truck Constraint"
+        
+    prob.writeLP('Routes.lp')
+
+    prob.solve()
+
+    print("Status:", LpStatus[prob.status])
+
+    for v in prob.variables():
+        if v.varValue == 1.0:
+            print(v.name, "=", v.varValue)
+
+    print("Total Cost from Routes = ", value(prob.objective))
     #reg2_routes = create_routes(reg2)
     #print('Region 2 Routes Completed')
     #print('Number of Routes: ' + str(len(reg2_routes)) + '\n')
