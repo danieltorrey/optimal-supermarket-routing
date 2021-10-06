@@ -1,20 +1,13 @@
-Status: Infeasible
-Route_1160 = 1.0
-Route_1828 = 1.0
-Route_3297 = 1.0
-Route_3306 = 1.0
-Route_3470 = 1.0
-Route_3497 = 1.0
-Route_3543 = 1.0
-Route_3552 = 1.0
-Route_3634 = 1.0
-Route_3643 = 1.0
-Route_4300 = 1.0
-Route_4382 = 1.0
-Route_5640 = 1.0
-Route_6142 = 1.0
-Route_6443 = 1.0
-Route_6461 = 1.0
-Route_7775 = 1.0
-Route_7939 = 1.0
-Total Cost from Routes =  3575.0
+Status: Optimal
+Route_1646 = 1.0
+Route_2467 = 1.0
+Route_3288 = 1.0
+Route_4 = 1.0
+Route_4109 = 1.0
+Route_4930 = 1.0
+Route_5751 = 1.0
+Route_6572 = 1.0
+Route_7393 = 1.0
+Route_8214 = 1.0
+Route_825 = 1.0
+Total Cost from Routes =  4347.5512499999995

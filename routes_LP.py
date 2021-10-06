@@ -47,6 +47,9 @@ def route_matrix(routes, region):
     for _,v in region.items():
         nodes.append(int(v))
 
+    # Removing DC node
+    DC = nodes.pop(-1)
+
     # Initialising matrix for each route
     route_matrix = np.zeros(shape=(len(nodes),len(routes)))
     
@@ -54,8 +57,9 @@ def route_matrix(routes, region):
     # Rows correspond to node number and columns correspond to each route
     for route in routes:
         for node in route:
-            route_matrix[nodes.index(node)][routes.index(route)] = 1
-
+            if node != DC:
+                route_matrix[nodes.index(node)][routes.index(route)] = 1
+    
     return route_matrix
     
 
@@ -64,7 +68,7 @@ def cost_route(routes):
     # Reading in the durations data from the csv file
     durations = pd.read_csv('WoolworthsTravelDurations.csv')
 
-    # Reading the dataset containg average pallete demand estimate
+    # Reading the dataset containg average pallet demand estimates
     average = pd.read_csv('WoolworthsStores.csv')
 
     # Initialising region route costs dictionary and route number variable
@@ -77,6 +81,8 @@ def cost_route(routes):
 
         # Initialising total duration required for route
         total_dur = 0
+
+        route_demand = 0
 
         for node in route:
             # Setting index of current node being scanned
@@ -93,7 +99,9 @@ def cost_route(routes):
 
                 # If destination node not DC, will read in the r
                 if route[i+1] != DC:
-                    pallet_dur = (average.loc[route[i+1]-1][1])*(7.5/60)
+                    node_demand = average.loc[route[i+1]-1][1]
+                    route_demand += node_demand
+                    pallet_dur = node_demand*(7.5/60)
                 else:
                     pallet_dur = 0
 
@@ -102,21 +110,21 @@ def cost_route(routes):
                 total_dur += dur
 
         # Calculating cost for route
-        if math.ceil(total_dur) >= 4:
+        if total_dur >= 4:
             route_cost = 900
         else: 
-            route_cost = math.ceil(total_dur) * 225
+            route_cost = total_dur * 225
 
         # Calculating additional costs if time exceeds 4 hours
         if total_dur > 4:
-            extra_dur = math.ceil(total_dur-4)
+            extra_dur = total_dur - 4
             route_cost = route_cost + (extra_dur * 275)
 
         # Appending individual route cost to region route costs dictionary
         route_costs[route_number] = route_cost
         # Incrementing route number
         route_number += 1
-
+        
     return route_costs
 
 
@@ -127,8 +135,8 @@ def lp_region(region, region_no):
 
     # Creating route matrix to see if node is visited or not
     visit_matrix = route_matrix(reg_routes, region)
-
-    # Creating cost matrix for each region
+    
+    # Costing each route for each region
     reg_cost = cost_route(reg_routes)
 
     # Setting up route variable for LP
@@ -147,12 +155,14 @@ def lp_region(region, region_no):
     
     # Numbered list for node constraint
     num = list(range(1, len(route_vars)+1))
-    
+
     # Constraint for each node to be visited once
     for row in range(np.shape(visit_matrix)[0]):
         con = pd.Series(visit_matrix[row], index = num)
         con_dict = dict(con)
+        
         prob += lpSum([con_dict[i]*route_vars[i] for i in route_vars]) == 1, "Node_{}".format(row)
+        #prob += lpSum([route_vars[i] * visit_matrix[row][i] for i in route_vars]) == 1, "Node_{}".format(row)
     
     # Calculating amount of truck routes available
     trucks = round((len(region)/65)*60)
@@ -188,6 +198,7 @@ def lp_region(region, region_no):
 
     sys.stdout.close()
 
+
 if __name__ == "__main__":
 
     # Reading in the data from the csv file
@@ -222,8 +233,7 @@ if __name__ == "__main__":
             reg4[store_name] = i
             reg5[store_name] = i
             reg6[store_name] = i
-
-
+    
     # Optimising the routes for each region
     reg1_lp = lp_region(reg1, 1)
     reg2_lp = lp_region(reg2, 2)

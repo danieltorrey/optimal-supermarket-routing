@@ -1,4 +1,4 @@
-Status: Infeasible
+Status: Optimal
 Route_1646 = 1.0
 Route_2467 = 1.0
 Route_3288 = 1.0
@@ -10,4 +10,4 @@ Route_6572 = 1.0
 Route_7393 = 1.0
 Route_8214 = 1.0
 Route_825 = 1.0
-Total Cost from Routes =  4725.0
+Total Cost from Routes =  3602.0825000000004

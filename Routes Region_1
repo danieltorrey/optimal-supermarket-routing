@@ -1,11 +1,11 @@
-Status: Infeasible
-Route_1407 = 1.0
-Route_2008 = 1.0
+Status: Optimal
+Route_1207 = 1.0
+Route_1608 = 1.0
 Route_2009 = 1.0
 Route_2410 = 1.0
-Route_254 = 1.0
-Route_2660 = 1.0
 Route_2811 = 1.0
-Route_3061 = 1.0
 Route_3212 = 1.0
-Total Cost from Routes =  5175.0
+Route_4 = 1.0
+Route_405 = 1.0
+Route_806 = 1.0
+Total Cost from Routes =  3812.21
