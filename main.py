@@ -93,10 +93,10 @@ def cost_routes(routes):
             # Duration is calculated from node to node and then added to total duration
             dur = travel_dur + pallet_dur
             total_dur += dur
-
+        
         # Adding travel durations from DC to start node and and end node to DC
-        total_dur += (float(durations.loc[DC][node]) + float(durations.loc[node][DC])) / 3600
-
+        total_dur += (float(durations.loc[DC][route[0]]) + float(durations.loc[route[-1]][DC])) / 3600
+        
         # Calculating cost for route
         if total_dur > 4:
             route_cost = 900+(total_dur-4)*275 
@@ -218,7 +218,7 @@ if __name__ == "__main__":
             reg5[store_name] = i
         elif region_number == 6:
             reg6[store_name] = i
-    
+
     # Optimising the routes for each region
     reg1_lp = optimise_routes(reg1, 1)
     reg2_lp = optimise_routes(reg2, 2)
