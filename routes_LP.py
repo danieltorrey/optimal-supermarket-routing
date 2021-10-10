@@ -5,6 +5,7 @@ from pulp import *
 import itertools
 import math
 import re
+import os
 
 
 def create_routes(region):
@@ -150,9 +151,7 @@ def lp_region(region, region_no):
     trucks = round((len(region)/65)*60)
     
     # Truck Constraint
-    prob += lpSum([1*route_vars[i] for i in route_vars]) == trucks, "Truck Constraint"
-        
-    prob.writeLP('Routes.lp')
+    prob += lpSum([1*route_vars[i] for i in route_vars]) <= trucks, "Truck Constraint"   
 
     prob.solve()
 
@@ -160,12 +159,17 @@ def lp_region(region, region_no):
     '''
     '''
     '''
+    routes_id = {}
+    for i in range(1,len(reg_routes)+1):
+        routes_id[i] = reg_routes[i-1]
 
+    os.chdir('results') 
+    
     # Txt file to output LP results
     sys.stdout = open("Routes Region_{}".format(region_no), "w")
 
     print("Status:", LpStatus[prob.status])
-
+    
     for v in prob.variables():
         if v.varValue == 1.0:
             print(v.name, "=", v.varValue)
@@ -181,9 +185,11 @@ def lp_region(region, region_no):
     for v in prob.variables():
         if v.varValue == 1.0:
             route_num = int(re.search(r'\d+', v.name).group())
-            print(reg_routes[route_num])
+            print(routes_id[route_num])
 
     sys.stdout.close()
+
+    os.chdir('..') 
 
 
 if __name__ == "__main__":
