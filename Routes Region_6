@@ -1,6 +1,5 @@
 Status: Optimal
-Route_10259 = 1.0
-Route_11724 = 1.0
+Route_11113 = 1.0
 Route_13189 = 1.0
 Route_14654 = 1.0
 Route_1469 = 1.0
@@ -12,4 +11,4 @@ Route_4399 = 1.0
 Route_5864 = 1.0
 Route_7329 = 1.0
 Route_8794 = 1.0
-Total Cost from Routes =  3900.98625
+Total Cost from Routes =  4165.06875

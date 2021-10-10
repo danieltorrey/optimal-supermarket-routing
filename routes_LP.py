@@ -9,17 +9,14 @@ import re
 
 def create_routes(region):
 
-    # Initialisation of routes and nodes lists
+    # Initialisation of routes lists
     routes = []
-    nodes = []
     
     # Saving the nodes in the region to an array
+    nodes = []
     for _,v in region.items():
         nodes.append(int(v))
-    
-    # Specifying the Woolworths Distribution Centre node (i.e. node that cycle starts and ends on)
-    DC = nodes.pop(-1)
-    
+  
     # Generating all possible routes for the conditions specified
     for n1 in nodes:
         for n2 in nodes:
@@ -28,15 +25,15 @@ def create_routes(region):
                     # Preventing repeat nodes
                     if n1!=n2 and n2!=n3 and n3!=n4 and n1!=n3 and n1!=n4 and n2!=n4:
                         # Accounting for routes of lengths four or lower
-                        if [DC, n1, n2, n3, n4, DC] not in routes:
-                            routes.append([DC, n1, n2, n3, n4, DC])
-                        if [DC, n1, n2, n3, DC] not in routes:
-                            routes.append([DC, n1, n2, n3, DC])
-                        if [DC, n1, n2, DC] not in routes:
-                            routes.append([DC, n1, n2, DC])
-                        if [DC, n1, DC] not in routes:
-                            routes.append([DC, n1, DC])
-
+                        if [n1, n2, n3, n4] not in routes:
+                            routes.append([n1, n2, n3, n4])
+                        if [n1, n2, n3] not in routes:
+                            routes.append([n1, n2, n3])
+                        if [n1, n2] not in routes:
+                            routes.append([n1, n2])
+                        if [n1] not in routes:
+                            routes.append([n1])
+    
     return routes
 
 
@@ -46,10 +43,7 @@ def route_matrix(routes, region):
     nodes = []
     for _,v in region.items():
         nodes.append(int(v))
-
-    # Removing DC node
-    DC = nodes.pop(-1)
-
+    
     # Initialising matrix for each route
     route_matrix = np.zeros(shape=(len(nodes),len(routes)))
     
@@ -57,9 +51,8 @@ def route_matrix(routes, region):
     # Rows correspond to node number and columns correspond to each route
     for route in routes:
         for node in route:
-            if node != DC:
-                route_matrix[nodes.index(node)][routes.index(route)] = 1
-    
+            route_matrix[nodes.index(node)][routes.index(route)] = 1
+  
     return route_matrix
     
 
@@ -67,15 +60,15 @@ def cost_route(routes):
     
     # Reading in the durations data from the csv file
     durations = pd.read_csv('WoolworthsTravelDurations.csv')
-
+   
     # Reading the dataset containg average pallet demand estimates
-    average = pd.read_csv('WoolworthsStores.csv')
-
+    demand = pd.read_csv('WoolworthsStores.csv')
+    
     # Initialising region route costs dictionary and route number variable
     route_costs = {}
     route_number = 1
 
-    DC = 66
+    DC = 65
 
     for route in routes:
 
@@ -85,46 +78,36 @@ def cost_route(routes):
         route_demand = 0
 
         for node in route:
-            # Setting index of current node being scanned
-            if total_dur == 0:
-                i = route.index(node)
-            else:
-                i += 1 
+            node_demand = 0
+            travel_dur = 0
 
-            # Checking whether node is the last node in the route
-            if i != len(route)-1:
-
+            if len(route) > 1 and node != route[-1]:
                 # Finding cost from current node to next node and adding to total route cost variable
-                travel_dur = float(durations.loc[node-1][route[i+1]])/3600   # in hours
+                travel_dur = float(durations.loc[node-1][route[route.index(node)+1]]) / 3600   # in hours
+            
+            node_demand = demand.loc[node-1][1]
+            route_demand += node_demand
+            pallet_dur = node_demand * (7.5/60)
 
-                # If destination node not DC, will read in the r
-                if route[i+1] != DC:
-                    node_demand = average.loc[route[i+1]-1][1]
-                    route_demand += node_demand
-                    pallet_dur = node_demand*(7.5/60)
-                else:
-                    pallet_dur = 0
+            # Duration is calculated from node to node and then added to total duration
+            dur = travel_dur + pallet_dur
+            total_dur += dur
 
-                # Duration is calculated from node to node and then added to total duration
-                dur = travel_dur + pallet_dur
-                total_dur += dur
+        # Adding travel durations from DC to start node and and end node to DC
+        total_dur += (float(durations.loc[DC][node]) + float(durations.loc[node][DC])) / 3600
 
         # Calculating cost for route
-        if total_dur >= 4:
-            route_cost = 900
-        else: 
-            route_cost = total_dur * 225
-
-        # Calculating additional costs if time exceeds 4 hours
         if total_dur > 4:
-            extra_dur = total_dur - 4
-            route_cost = route_cost + (extra_dur * 275)
+            route_cost = 900+(total_dur-4)*275 
+        else: 
+            route_cost = total_dur*225
 
         # Appending individual route cost to region route costs dictionary
         route_costs[route_number] = route_cost
+
         # Incrementing route number
         route_number += 1
-        
+  
     return route_costs
 
 
@@ -132,13 +115,13 @@ def lp_region(region, region_no):
     
     # Creating all possible routes for each region from the conditions specified
     reg_routes = create_routes(region)
-
+    
     # Creating route matrix to see if node is visited or not
     visit_matrix = route_matrix(reg_routes, region)
-    
+   
     # Costing each route for each region
     reg_cost = cost_route(reg_routes)
-
+    
     # Setting up route variable for LP
     route = {}
     for k, v in reg_cost.items():
@@ -149,7 +132,7 @@ def lp_region(region, region_no):
 
     # Dictionary for Route variable in LP
     route_vars = LpVariable.dicts("Route", route, cat='Binary')
-
+    
     # Objective function
     prob += lpSum([reg_cost[i]*route_vars[i] for i in route_vars]), "Route Optimisation Function"
     
@@ -162,7 +145,6 @@ def lp_region(region, region_no):
         con_dict = dict(con)
         
         prob += lpSum([con_dict[i]*route_vars[i] for i in route_vars]) == 1, "Node_{}".format(row)
-        #prob += lpSum([route_vars[i] * visit_matrix[row][i] for i in route_vars]) == 1, "Node_{}".format(row)
     
     # Calculating amount of truck routes available
     trucks = round((len(region)/65)*60)
@@ -173,6 +155,11 @@ def lp_region(region, region_no):
     prob.writeLP('Routes.lp')
 
     prob.solve()
+
+    '''
+    '''
+    '''
+    '''
 
     # Txt file to output LP results
     sys.stdout = open("Routes Region_{}".format(region_no), "w")
@@ -224,14 +211,6 @@ if __name__ == "__main__":
         elif region_number == 5:
             reg5[store_name] = i
         elif region_number == 6:
-            reg6[store_name] = i
-        # Saving the distribution centre node as the last node in each region
-        elif region_number == 7:
-            reg1[store_name] = i
-            reg2[store_name] = i
-            reg3[store_name] = i
-            reg4[store_name] = i
-            reg5[store_name] = i
             reg6[store_name] = i
     
     # Optimising the routes for each region
