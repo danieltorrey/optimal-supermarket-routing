@@ -57,7 +57,7 @@ def route_matrix(routes, region):
     return route_matrix
     
 
-def cost_route(routes):
+def cost_routes(routes):
     
     # Reading in the durations data from the csv file
     durations = pd.read_csv('WoolworthsTravelDurations.csv')
@@ -112,7 +112,7 @@ def cost_route(routes):
     return route_costs
 
 
-def lp_region(region, region_no):
+def optimise_routes(region, region_no):
     
     # Creating all possible routes for each region from the conditions specified
     reg_routes = create_routes(region)
@@ -121,7 +121,7 @@ def lp_region(region, region_no):
     visit_matrix = route_matrix(reg_routes, region)
    
     # Costing each route for each region
-    reg_cost = cost_route(reg_routes)
+    reg_cost = cost_routes(reg_routes)
     
     # Setting up route variable for LP
     route = {}
@@ -220,9 +220,9 @@ if __name__ == "__main__":
             reg6[store_name] = i
     
     # Optimising the routes for each region
-    reg1_lp = lp_region(reg1, 1)
-    reg2_lp = lp_region(reg2, 2)
-    reg3_lp = lp_region(reg3, 3)
-    reg4_lp = lp_region(reg4, 4)
-    reg5_lp = lp_region(reg5, 5)
-    reg6_lp = lp_region(reg6, 6)
+    reg1_lp = optimise_routes(reg1, 1)
+    reg2_lp = optimise_routes(reg2, 2)
+    reg3_lp = optimise_routes(reg3, 3)
+    reg4_lp = optimise_routes(reg4, 4)
+    reg5_lp = optimise_routes(reg5, 5)
+    reg6_lp = optimise_routes(reg6, 6)
