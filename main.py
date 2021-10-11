@@ -151,6 +151,29 @@ def cost_routes(routes, weekday):
   
     return route_costs
 
+def pallete_calc(routes, weekday):
+
+    # Reading the dataset containg average pallet demand estimates
+    demand = pd.read_csv('WoolworthsStores.csv')
+    
+    # Initalise array
+    pallete_demand = []
+
+    for route in routes:
+        total_demand = 0
+        for node in route:
+            # Grab pallete demand for specific node
+            if weekday:
+                node_demand = demand.loc[node-1][3]
+            else:
+                node_demand = demand.loc[node-1][2]
+            # Add to total demand in the route
+            total_demand += node_demand
+        # Add to the pallete demand array
+        pallete_demand.append(total_demand)
+    
+    return pallete_demand
+
 
 def optimise_routes(region, region_no, weekday):
     
@@ -184,7 +207,6 @@ def optimise_routes(region, region_no, weekday):
     for row in range(np.shape(visit_matrix)[0]):
         con = pd.Series(visit_matrix[row], index = num)
         con_dict = dict(con)
-        
         prob += lpSum([con_dict[i]*route_vars[i] for i in route_vars]) == 1, "Node_{}".format(row)
     
     # Calculating amount of truck routes available
@@ -248,6 +270,7 @@ if __name__ == "__main__":
 
     # Initialising regions depending on either weekday or weekend demand
     reg1, reg2, reg3, reg4, reg5, reg6 = initialise_regions(time_period) 
+
 
     # Optimising the routes for each region
     reg1_lp = optimise_routes(reg1, 1, time_period)
