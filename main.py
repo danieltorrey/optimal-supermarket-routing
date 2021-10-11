@@ -90,13 +90,13 @@ def cost_routes(routes, weekday):
    
     # Reading the dataset containg average pallet demand estimates
     demand = pd.read_csv('WoolworthsStores.csv')
+    demand = demand[0:66]
     
     # Initialising region route costs dictionary and route number variable
     route_costs = {}
     route_number = 1
-
     DC = 65
-
+    
     for route in routes:
 
         # Initialising total duration required for route
@@ -107,10 +107,10 @@ def cost_routes(routes, weekday):
             node_demand = 0
             travel_dur = 0
 
-            if len(route) > 1 and node != route[-1]:
+            if len(route) > 1 and node != route[len(route)-1]:
                 # Finding cost from current node to next node and adding to total route cost variable
-                travel_dur = float(durations.loc[node-1][route[route.index(node)+1]]) / 3600   # in hours
-            
+                travel_dur = float(durations.loc[node-1][route[route.index(node)+1]]) / 3600  # in hours
+           
             if weekday:
                 node_demand = demand.loc[node-1][3]
             else:
@@ -122,10 +122,10 @@ def cost_routes(routes, weekday):
             # Duration is calculated from node to node and then added to total duration
             dur = travel_dur + pallet_dur
             total_dur += dur
-        
+
         # Adding travel durations from DC to start node and and end node to DC
-        total_dur += (float(durations.loc[DC][route[0]]) + float(durations.loc[route[-1]][DC])) / 3600
-        
+        total_dur += (float(durations.loc[DC][route[0]]) + float(durations.loc[route[-1]-1][DC+1])) / 3600
+      
         # Calculating cost for route
         if total_dur > 4:
             route_cost = 900+(total_dur-4)*275 
@@ -137,7 +137,7 @@ def cost_routes(routes, weekday):
 
         # Incrementing route number
         route_number += 1
-  
+   
     return route_costs
 
 
@@ -157,8 +157,10 @@ def pallet_calc(routes, weekday):
                 node_demand = demand.loc[node-1][3]
             else:
                 node_demand = demand.loc[node-1][2]
+
             # Add to total demand in the route
             total_demand += node_demand
+
         # Add to the pallete demand array
         pallet_demand.append(total_demand)
     
@@ -172,7 +174,7 @@ def optimise_routes(region, region_no, length, weekday):
     
     # Creating route matrix to see if node is visited or not
     visit_matrix = route_matrix(reg_routes, region)
-   
+    
     # Costing each route for each region
     reg_cost = cost_routes(reg_routes, time_period)
     
@@ -256,14 +258,14 @@ def optimise_routes(region, region_no, length, weekday):
 if __name__ == "__main__":
 
     # True = weekday, False = weekend
-    time_period = False 
+    time_period = True 
 
     # Specifying max number of nodes that routes visit
     length = 4
 
     # Initialising regions depending on either weekday or weekend demand
     reg1, reg2, reg3, reg4, reg5, reg6 = initialise_regions(time_period) 
-
+  
     # Optimising the routes for each region
     reg1_lp = optimise_routes(reg1, 1, length, time_period)
     reg2_lp = optimise_routes(reg2, 2, length, time_period)
