@@ -132,6 +132,9 @@ def cost_routes(routes, weekday):
         else: 
             route_cost = total_dur*225
 
+        if route_demand > 26:
+            route_cost = 999999
+
         # Appending individual route cost to region route costs dictionary
         route_costs[route_number] = route_cost
 
@@ -232,7 +235,7 @@ def optimise_routes(region, region_no, length, weekday):
 if __name__ == "__main__":
 
     # True = weekday, False = weekend
-    time_period = True 
+    time_period = False 
 
     # Specifying max number of nodes that routes visit
     length = 4
