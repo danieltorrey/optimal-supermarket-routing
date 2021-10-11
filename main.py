@@ -2,7 +2,7 @@ from typing import final
 import numpy as np
 import pandas as pd
 from pulp import *
-import itertools
+from itertools import permutations
 import math
 import re
 import os
@@ -45,7 +45,7 @@ def initialise_regions(weekday):
     return reg1, reg2, reg3, reg4, reg5, reg6
 
 
-def create_routes(region):
+def create_routes(region, length):
 
     # Initialisation of routes lists
     routes = []
@@ -56,22 +56,11 @@ def create_routes(region):
         nodes.append(int(v))
   
     # Generating all possible routes for the conditions specified
-    for n1 in nodes:
-        for n2 in nodes:
-            for n3 in nodes:
-                for n4 in nodes:
-                    # Preventing repeat nodes
-                    if n1!=n2 and n2!=n3 and n3!=n4 and n1!=n3 and n1!=n4 and n2!=n4:
-                        # Accounting for routes of lengths four or lower
-                        if [n1, n2, n3, n4] not in routes:
-                            routes.append([n1, n2, n3, n4])
-                        if [n1, n2, n3] not in routes:
-                            routes.append([n1, n2, n3])
-                        if [n1, n2] not in routes:
-                            routes.append([n1, n2])
-                        if [n1] not in routes:
-                            routes.append([n1])
-    
+    for i in range(1,length+1):
+        perm = permutations(nodes, i)
+        for j in perm:
+            routes.append(list(j))
+
     return routes
 
 
@@ -112,7 +101,6 @@ def cost_routes(routes, weekday):
 
         # Initialising total duration required for route
         total_dur = 0
-
         route_demand = 0
 
         for node in route:
@@ -127,6 +115,7 @@ def cost_routes(routes, weekday):
                 node_demand = demand.loc[node-1][3]
             else:
                 node_demand = demand.loc[node-1][2]
+
             route_demand += node_demand
             pallet_dur = node_demand * (7.5/60)
 
@@ -151,18 +140,19 @@ def cost_routes(routes, weekday):
   
     return route_costs
 
-def pallete_calc(routes, weekday):
+
+def pallet_calc(routes, weekday):
 
     # Reading the dataset containg average pallet demand estimates
     demand = pd.read_csv('WoolworthsStores.csv')
     
     # Initalise array
-    pallete_demand = []
+    pallet_demand = []
 
     for route in routes:
         total_demand = 0
         for node in route:
-            # Grab pallete demand for specific node
+            # Grab pallet demand for specific node
             if weekday:
                 node_demand = demand.loc[node-1][3]
             else:
@@ -170,15 +160,15 @@ def pallete_calc(routes, weekday):
             # Add to total demand in the route
             total_demand += node_demand
         # Add to the pallete demand array
-        pallete_demand.append(total_demand)
+        pallet_demand.append(total_demand)
     
-    return pallete_demand
+    return pallet_demand
 
 
-def optimise_routes(region, region_no, weekday):
+def optimise_routes(region, region_no, length, weekday):
     
     # Creating all possible routes for each region from the conditions specified
-    reg_routes = create_routes(region)
+    reg_routes = create_routes(region, length)
     
     # Creating route matrix to see if node is visited or not
     visit_matrix = route_matrix(reg_routes, region)
@@ -268,14 +258,16 @@ if __name__ == "__main__":
     # True = weekday, False = weekend
     time_period = False 
 
+    # Specifying max number of nodes that routes visit
+    length = 4
+
     # Initialising regions depending on either weekday or weekend demand
     reg1, reg2, reg3, reg4, reg5, reg6 = initialise_regions(time_period) 
 
-
     # Optimising the routes for each region
-    reg1_lp = optimise_routes(reg1, 1, time_period)
-    reg2_lp = optimise_routes(reg2, 2, time_period)
-    reg3_lp = optimise_routes(reg3, 3, time_period)
-    reg4_lp = optimise_routes(reg4, 4, time_period)
-    reg5_lp = optimise_routes(reg5, 5, time_period)
-    reg6_lp = optimise_routes(reg6, 6, time_period)
+    reg1_lp = optimise_routes(reg1, 1, length, time_period)
+    reg2_lp = optimise_routes(reg2, 2, length, time_period)
+    reg3_lp = optimise_routes(reg3, 3, length, time_period)
+    reg4_lp = optimise_routes(reg4, 4, length, time_period)
+    reg5_lp = optimise_routes(reg5, 5, length, time_period)
+    reg6_lp = optimise_routes(reg6, 6, length, time_period)
