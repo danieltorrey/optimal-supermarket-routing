@@ -141,32 +141,6 @@ def cost_routes(routes, weekday):
     return route_costs
 
 
-def pallet_calc(routes, weekday):
-
-    # Reading the dataset containg average pallet demand estimates
-    demand = pd.read_csv('WoolworthsStores.csv')
-    
-    # Initalise array
-    pallet_demand = []
-
-    for route in routes:
-        total_demand = 0
-        for node in route:
-            # Grab pallet demand for specific node
-            if weekday:
-                node_demand = demand.loc[node-1][3]
-            else:
-                node_demand = demand.loc[node-1][2]
-
-            # Add to total demand in the route
-            total_demand += node_demand
-
-        # Add to the pallete demand array
-        pallet_demand.append(total_demand)
-    
-    return pallet_demand
-
-
 def optimise_routes(region, region_no, length, weekday):
     
     # Creating all possible routes for each region from the conditions specified
