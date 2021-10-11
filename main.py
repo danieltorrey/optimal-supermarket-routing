@@ -8,6 +8,43 @@ import re
 import os
 
 
+def initialise_regions(weekday):
+
+     # Reading in the data from the csv file
+    data = pd.read_csv('WoolworthsStores.csv')
+    data = data[0:65]
+
+    # Initialising dictionaries for each of the regions
+    reg1, reg2, reg3, reg4, reg5, reg6 = {}, {}, {}, {}, {}, {}
+    
+    
+    # Saving the store name and its corresponding region for each store to a dictionary
+    for i in range(1,len(data)+1):
+        store_name = str(data.iloc[i-1]['Store'])
+        region_number = int(data.iloc[i-1]['Region'])
+
+        if weekday:
+            store_demand = int(data.iloc[i-1]['Rounded Weekday'])
+        else:
+            store_demand = int(data.iloc[i-1]['Rounded Saturday'])
+        
+        if store_demand != 0:
+            if region_number == 1:
+                reg1[store_name] = i
+            elif region_number == 2:
+                reg2[store_name] = i
+            elif region_number == 3:
+                reg3[store_name] = i
+            elif region_number == 4:
+                reg4[store_name] = i
+            elif region_number == 5:
+                reg5[store_name] = i
+            elif region_number == 6:
+                reg6[store_name] = i
+
+    return reg1, reg2, reg3, reg4, reg5, reg6
+
+
 def create_routes(region):
 
     # Initialisation of routes lists
@@ -57,7 +94,7 @@ def route_matrix(routes, region):
     return route_matrix
     
 
-def cost_routes(routes):
+def cost_routes(routes, weekday):
     
     # Reading in the durations data from the csv file
     durations = pd.read_csv('WoolworthsTravelDurations.csv')
@@ -86,7 +123,10 @@ def cost_routes(routes):
                 # Finding cost from current node to next node and adding to total route cost variable
                 travel_dur = float(durations.loc[node-1][route[route.index(node)+1]]) / 3600   # in hours
             
-            node_demand = demand.loc[node-1][1]
+            if weekday:
+                node_demand = demand.loc[node-1][3]
+            else:
+                node_demand = demand.loc[node-1][2]
             route_demand += node_demand
             pallet_dur = node_demand * (7.5/60)
 
@@ -112,7 +152,7 @@ def cost_routes(routes):
     return route_costs
 
 
-def optimise_routes(region, region_no):
+def optimise_routes(region, region_no, weekday):
     
     # Creating all possible routes for each region from the conditions specified
     reg_routes = create_routes(region)
@@ -121,7 +161,7 @@ def optimise_routes(region, region_no):
     visit_matrix = route_matrix(reg_routes, region)
    
     # Costing each route for each region
-    reg_cost = cost_routes(reg_routes)
+    reg_cost = cost_routes(reg_routes, time_period)
     
     # Setting up route variable for LP
     route = {}
@@ -166,7 +206,12 @@ def optimise_routes(region, region_no):
     os.chdir('results') 
     
     # Txt file to output LP results
-    sys.stdout = open("Routes Region_{}".format(region_no), "w")
+    if weekday:
+        os.chdir('weekday') 
+        sys.stdout = open("LP Output - Region {}".format(region_no), "w")
+    else:
+        os.chdir('weekend') 
+        sys.stdout = open("LP Output - Region {}".format(region_no), "w")
 
     print("Status:", LpStatus[prob.status])
     
@@ -179,7 +224,10 @@ def optimise_routes(region, region_no):
     sys.stdout.close()
 
     # Txt file for actual route numbers
-    sys.stdout = open("Nodes Visited_{}".format(region_no), "w")
+    if weekday:
+        sys.stdout = open("Routes - Region {}".format(region_no), "w")
+    else:
+        sys.stdout = open("Routes - Region {}".format(region_no), "w")
 
     # To give route sequences
     for v in prob.variables():
@@ -189,40 +237,22 @@ def optimise_routes(region, region_no):
 
     sys.stdout.close()
 
-    os.chdir('..') 
+    os.chdir('..')
+    os.chdir('..')
 
 
 if __name__ == "__main__":
 
-    # Reading in the data from the csv file
-    data = pd.read_csv('WoolworthsStores.csv')
-    data = data[0:66]
+    # True = weekday, False = weekend
+    time_period = False 
 
-    # Initialising dictionaries for each of the regions
-    reg1, reg2, reg3, reg4, reg5, reg6 = {}, {}, {}, {}, {}, {}
-
-    # Saving the store name and its corresponding region for each store to a dictionary
-    for i in range(1,len(data)+1):
-        store_name = str(data.iloc[i-1]['Store'])
-        region_number = int(data.iloc[i-1]['Region'])
-        
-        if region_number == 1:
-            reg1[store_name] = i
-        elif region_number == 2:
-            reg2[store_name] = i
-        elif region_number == 3:
-            reg3[store_name] = i
-        elif region_number == 4:
-            reg4[store_name] = i
-        elif region_number == 5:
-            reg5[store_name] = i
-        elif region_number == 6:
-            reg6[store_name] = i
+    # Initialising regions depending on either weekday or weekend demand
+    reg1, reg2, reg3, reg4, reg5, reg6 = initialise_regions(time_period) 
 
     # Optimising the routes for each region
-    reg1_lp = optimise_routes(reg1, 1)
-    reg2_lp = optimise_routes(reg2, 2)
-    reg3_lp = optimise_routes(reg3, 3)
-    reg4_lp = optimise_routes(reg4, 4)
-    reg5_lp = optimise_routes(reg5, 5)
-    reg6_lp = optimise_routes(reg6, 6)
+    reg1_lp = optimise_routes(reg1, 1, time_period)
+    reg2_lp = optimise_routes(reg2, 2, time_period)
+    reg3_lp = optimise_routes(reg3, 3, time_period)
+    reg4_lp = optimise_routes(reg4, 4, time_period)
+    reg5_lp = optimise_routes(reg5, 5, time_period)
+    reg6_lp = optimise_routes(reg6, 6, time_period)
