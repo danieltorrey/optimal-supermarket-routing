@@ -260,9 +260,9 @@ def visualise():
             iconCol = "blue"
         elif locations.Type[i] == "SuperValue":
             iconCol = "red"
-        elif locations.Type[i] == "Countdown  Metro":
+        elif locations.Type[i] == "Countdown Metro":
             iconCol = "orange"
-        elif locations.Type[i] == "Distribution  Centre":
+        elif locations.Type[i] == "Distribution Centre":
             iconCol = "black"
         # add all colour changes to the map
         folium.Marker(list(reversed(coords[i])),  popup=locations.Store[i],  icon=folium.Icon(
@@ -309,16 +309,12 @@ def visualise():
 
     # for each route
     for i in range(0, len(routes)):
-        # if there is more than one location in the route
-        if len(routes[i]) >= 2:
-            # add the route locations to the coordinate list
-            coordinates = [coords[node] for node in routes[i]]
-            # create the route
-            route = client.directions(
-                coordinates=coordinates, profile='driving-hgv', format='geojson', validate=False)
-            # add the route to the map
-            folium.PolyLine(locations=[list(reversed(
-                coord)) for coord in route['features'][0]['geometry']['coordinates']]).add_to(akl)
+        # add the route locations to the coordinate list
+        locii = [coords[-1]]+[coords[node] for node in routes[i]]
+        # create the route
+        route = client.directions(coordinates=locii, profile='driving-hgv', format='geojson', validate=False)
+        # add the route to the map
+        folium.PolyLine(locations=[list(reversed(coord)) for coord in route['features'][0]['geometry']['coordinates']]).add_to(akl)
 
     # save the finalised visualisation to html file
     akl.save('route1.html')
