@@ -7,8 +7,6 @@ import math
 import re
 import os
 
-from Lab6 import C
-
 def initialise_regions(weekday):
 
     # Reading in the data from the csv file
@@ -100,8 +98,8 @@ def cost_routes(routes, weekday):
     def generateNodeDemand(node, weekday):
 
         # Get average demand and standard deviation, and generate random
-        # variation for demand from normal distribution 
-        if weekday == True:
+        # variate for demand from normal distribution 
+        if weekday:
             node_average = demand.loc[node-1][2]
             node_stddev = demand.loc[node-1][4]
             node_demand = np.random.normal(node_average, node_stddev) 
@@ -114,7 +112,7 @@ def cost_routes(routes, weekday):
 
     def generateTravelDuration(node, weekday): 
 
-    # Using information adapted from Auckland Transport traffic counts
+    # Information adapted from Auckland Transport traffic counts
     # https://at.govt.nz/about-us/reports-publications/traffic-counts/
     #   - there is ~ 8624 vehicles on average on a Weekday
     #   - there is ~ 7524 vehicles on average on a Saturday
@@ -125,16 +123,17 @@ def cost_routes(routes, weekday):
 
         # Get travel duration from current node to next node
         if weekday: 
-            # MAKE SOME TRAVEL TIME ADJUSTMENT (traffic_adj)
+            # MAKE SOME TRAVEL TIME ADJUSTMENT
             travel_dur = float(
                 durations.loc[node-1][route[route.index(node)+1]]) / 3600  # in hours
         else: 
-            # MAKE SOME OTHER TRAVEL TIME ADJUSTMENT (traffic_adj)
+            # MAKE SOME OTHER TRAVEL TIME ADJUSTMENT
             travel_dur = float(
                 durations.loc[node-1][route[route.index(node)+1]]) / 3600  # in hours
 
         # Assume there is one peak hour of traffic during each four hour shift 
-        # where motorists need to allow 55% more time for travel
+        # where motorists need to allow 55% more time for travel i.e. a quarter
+        # of the travel time is done during a peak hour 
         traffic_adj = (travel_dur / 4) * 1.55 
 
         # Add traffic adjustment to travel duration 
@@ -148,11 +147,11 @@ def cost_routes(routes, weekday):
         # Similar function for travel duration from DC to start node and end node to DC 
 
         if weekday: 
-            # MAKE SOME TRAVEL TIME ADJUSTMENT (traffic_adj)
+            # MAKE SOME TRAVEL TIME ADJUSTMENT
             DC_travel_dur =  (float(durations.loc[DC][route[0]]) +
                                 float(durations.loc[route[-1]-1][DC+1])) / 3600
         else: 
-            # MAKE SOME OTHER TRAVEL TIME ADJUSTMENT (traffic_adj)
+            # MAKE SOME OTHER TRAVEL TIME ADJUSTMENT
             DC_travel_dur = (float(durations.loc[DC][route[0]]) +
                                 float(durations.loc[route[-1]-1][DC+1])) / 3600
 
@@ -164,6 +163,7 @@ def cost_routes(routes, weekday):
         DC_travel_dur += traffic_adj 
 
         return DC_travel_dur
+
 
     for route in routes:
 
@@ -178,11 +178,11 @@ def cost_routes(routes, weekday):
             travel_dur = 0
 
             if weekday:
-                node_demand = generateNodeDemand(node, weekday=True)
+                node_demand = generateNodeDemand(node, weekday)
                 if len(route) > 1 and node != route[len(route)-1]:
                     travel_dur = generateTravelDuration(node, weekday=True)
             else:
-                node_demand = generateNodeDemand(node, weekday=False) 
+                node_demand = generateNodeDemand(node, weekday) 
                 if len(route) > 1 and node != route[len(route)-1]:
                     travel_dur = generateTravelDuration(node, weekday=False)               
 
@@ -269,7 +269,7 @@ def optimise_routes(region, region_no, length, weekday):
 # Evaluate routing schedule costs
 
 # True = weekday, False = weekend
-time_period = True
+time_period = False
 
 # Specify max number of nodes that routes visit
 length = 4
@@ -278,18 +278,18 @@ length = 4
 reg1, reg2, reg3, reg4, reg5, reg6 = initialise_regions(time_period)
 
 # Optimal route costs already obtained (2dp) for each region 
-if time_period == True: 
-    optimisedCosts = [3047.00, 2750.47, 3348.99, 2623.63, 3213.96, 3310.85] # weekday solutions
-else: 
+if time_period == False: 
     optimisedCosts = [2190.65, 1570.52, 1861.98, 1205.50, 1819.53, 1814.06] # weekend solutions
+else: 
+    optimisedCosts = [3047.00, 2750.47, 3348.99, 2623.63, 3213.96, 3310.85] # weekday solutions
 
 # Initialise matrices for simulations (run 10 times)
 expectedTimes = np.zeros((6,10))
 completionTimes = np.zeros((6,10))
 
 # Carry out simulations 
-for i in range(completionTimes.shape[0]):
-    for j in range(completionTimes.shape[1]): 
+for i in range(completionTimes.shape[0]): # for i in range 6
+    for j in range(completionTimes.shape[1]): # for j in range 10
         
         # Set expected times for each region 
         expectedTimes[i][j] = optimisedCosts[i]
@@ -311,30 +311,3 @@ for i in range(completionTimes.shape[0]):
 
         # Region 6 Simulation 
         completionTimes[5][j] = round(optimise_routes(reg6, 6, length, time_period),2)
-
-        # # Region 1 Simulation
-        # ExpectedTimes_1[i] = optimisedCosts[j]
-        # CompletionTimes_1[i] = round(optimise_routes(reg1, 1, length, time_period),2)
-
-print(expectedTimes)
-print(completionTimes)
-
-# Can edit and use the following as necessary
-
-# Histograms
-# plt.hist(CompletionTimes, density=True, histtype='stepfilled', alpha=0.2)
-# plt.hist(ExpectedTimes, density=True, histtype='stepfilled', alpha=0.2)
-
-# Average completion time
-# np/mean(CompletionTimes_x)
-
-# One sample t-test, which H0 = expected completion time
-# print(stats.ttest_1samp(CompletionTimes_x, 24.67))
-
-# Percentile interval
-# CompletionTimes_x.sort()
-# lowerBound = CompletionTimes_x[25]
-#upperBound = CompletionTimes_x[975]
-
-# Error rate
-# errorRate = sum(np.greater(CompletionTimes_x, ExpectedTimes_x))/len(CompletionTimes)
