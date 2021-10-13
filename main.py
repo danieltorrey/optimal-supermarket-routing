@@ -310,7 +310,7 @@ def visualise():
     # for each route
     for i in range(0, len(routes)):
         # add the route locations to the coordinate list
-        locii = [coords[-1]]+[coords[node] for node in routes[i]]
+        locii = [coords[-1]]+[coords[node-1] for node in routes[i]]
         # create the route
         route = client.directions(coordinates=locii, profile='driving-hgv', format='geojson', validate=False)
         # add the route to the map
