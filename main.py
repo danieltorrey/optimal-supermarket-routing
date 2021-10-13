@@ -239,7 +239,21 @@ def optimise_routes(region, region_no, length, weekday):
     os.chdir('..')
 
 
-def visualise():
+def CreateMap():
+    '''
+    This function creates a map of all supermarket locations, coloured by branch
+
+    Parameters:
+    ------------
+    None
+
+    Returns:
+    ------------
+    coords : list
+        list of coordinates from data, used for folium operations
+    map : folium.Map
+        the created map with coloured markers
+    '''
 
     locations = pd.read_csv('WoolworthsLocations.csv')
 
@@ -249,11 +263,11 @@ def visualise():
     # reverse columns for folium to read as lat, long
     akl = folium.Map(location=list(reversed(coords[2])), zoom_start=10)
 
-    folium.Marker(list(reversed(coords[0])), popup=locations.Store[0], icon=folium.Icon(
+    folium.Marker(list(reversed(coords[65])), popup=locations.Store[0], icon=folium.Icon(
         color='black')).add_to(akl)
 
     # colour location tags based off branch
-    for i in range(1,  len(coords)):
+    for i in range(0,  len(coords)):
         if locations.Type[i] == "Countdown":
             iconCol = "green"
         elif locations.Type[i] == "FreshChoice":
@@ -268,6 +282,22 @@ def visualise():
         folium.Marker(list(reversed(coords[i])),  popup=locations.Store[i],  icon=folium.Icon(
             color=iconCol)).add_to(akl)
 
+    return coords, akl
+
+
+def Visualise():
+    '''
+    This function adds the optimised routes to a map/maps and saves the outcome to html file
+
+    Parameters:
+    ------------
+    None
+
+    Returns:
+    ------------
+    None
+    '''
+
     # Boot up client to OpenRouteService
     client = ors.Client(key=ORSkey)
 
@@ -278,46 +308,50 @@ def visualise():
     routes = []
 
     # for the regions in the 'weekday' folder
-    for i in range(1, 7):
+    for r in range(1, 7):
+        # get new map
+        coords, akl = CreateMap()
+        routes = []
         # get the path for the file name
-        folder = (directory+os.sep+'results' + os.sep + 'weekday')
-        filename = folder + (os.sep + 'Routes - Region ' + str(i))
+        filename = (directory+os.sep+'results' + os.sep +
+                    'weekday') + (os.sep + 'Routes - Region ' + str(r))
         # open the file
         file = open(filename, 'r')
         # add each line (a single route) to the list of all routes
         routes += file.readlines()
         file.close()
-    # for each region in the 'weekend' folder
-    for i in range(1, 7):
-        # get the path name for each file
-        folder = (directory+os.sep+'results' + os.sep + 'weekend')
-        filename = folder + (os.sep + 'Routes - Region ' + str(i))
-        # open the file
+        # do the same for the weekend
+        filename = (directory+os.sep+'results' + os.sep +
+                    'weekend') + (os.sep + 'Routes - Region ' + str(r))
         file = open(filename, 'r')
-        # add each route=line to the routes list
         routes += file.readlines()
         file.close()
 
-    # remove all next line symbols from the end of the arrays
-    routes = [elem.strip('\n') for elem in routes]
+        # remove all next line symbols from the end of the arrays
+        routes = [elem.strip('\n') for elem in routes]
 
-    for i in range(0, len(routes)):
-        # remove the brackets read in from the file as strings, split the string data into individual strings
-        routes[i] = routes[i].strip('[').strip(']').split(', ')
-        # convert each string to integer
-        routes[i] = [int(j) for j in routes[i]]
+        for i in range(0, len(routes)):
+            # remove the brackets read in from the file as strings, split the string data into individual strings
+            routes[i] = routes[i].strip('[').strip(']').split(', ')
+            # convert each string to integer
+            routes[i] = [int(j) for j in routes[i]]
 
-    # for each route
-    for i in range(0, len(routes)):
-        # add the route locations to the coordinate list
-        locii = [coords[-1]]+[coords[node-1] for node in routes[i]]
-        # create the route
-        route = client.directions(coordinates=locii, profile='driving-hgv', format='geojson', validate=False)
-        # add the route to the map
-        folium.PolyLine(locations=[list(reversed(coord)) for coord in route['features'][0]['geometry']['coordinates']]).add_to(akl)
+        # for each route
+        for i in range(0, len(routes)):
+            # add the route locations to the coordinate list
+            locii = [coords[-1]]+[coords[node-1]
+                                  for node in routes[i]]+[coords[-1]]
+            # create the route
+            route = client.directions(
+                coordinates=locii, profile='driving-hgv', format='geojson', validate=False)
+            # add the route to the map
+            folium.PolyLine(locations=[list(reversed(
+                coord)) for coord in route['features'][0]['geometry']['coordinates']]).add_to(akl)
 
-    # save the finalised visualisation to html file
-    akl.save('route1.html')
+        # save the finalised visualisation to html file
+        # save title as
+        title = "Region_" + str(r) + ".html"
+        akl.save(title)
 
 
 if __name__ == "__main__":
@@ -339,4 +373,4 @@ if __name__ == "__main__":
     reg5_lp = optimise_routes(reg5, 5, length, time_period)
     reg6_lp = optimise_routes(reg6, 6, length, time_period)
 
-    visualise()
+    Visualise()
