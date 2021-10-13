@@ -112,28 +112,16 @@ def cost_routes(routes, weekday):
 
     def generateTravelDuration(node, weekday): 
 
-    # Information adapted from Auckland Transport traffic counts
-    # https://at.govt.nz/about-us/reports-publications/traffic-counts/
-    #   - there is ~ 8624 vehicles on average on a Weekday
-    #   - there is ~ 7524 vehicles on average on a Saturday
-
-    # https://www.transport.govt.nz/assets/Uploads/Report/The-Congestion-Question-Report.pdf
-    #   - "motorists now need to allow an additional 40 to 55 percent more time for their 
-    #      trips to be assured of arriving on time"
-
         # Get travel duration from current node to next node
         if weekday: 
-            # MAKE SOME TRAVEL TIME ADJUSTMENT
             travel_dur = float(
                 durations.loc[node-1][route[route.index(node)+1]]) / 3600  # in hours
         else: 
-            # MAKE SOME OTHER TRAVEL TIME ADJUSTMENT
             travel_dur = float(
                 durations.loc[node-1][route[route.index(node)+1]]) / 3600  # in hours
 
         # Assume there is one peak hour of traffic during each four hour shift 
-        # where motorists need to allow 55% more time for travel i.e. a quarter
-        # of the travel time is done during a peak hour 
+        # where motorists need to allow 55% more time for travel
         traffic_adj = (travel_dur / 4) * 1.55 
 
         # Add traffic adjustment to travel duration 
@@ -147,11 +135,9 @@ def cost_routes(routes, weekday):
         # Similar function for travel duration from DC to start node and end node to DC 
 
         if weekday: 
-            # MAKE SOME TRAVEL TIME ADJUSTMENT
             DC_travel_dur =  (float(durations.loc[DC][route[0]]) +
                                 float(durations.loc[route[-1]-1][DC+1])) / 3600
         else: 
-            # MAKE SOME OTHER TRAVEL TIME ADJUSTMENT
             DC_travel_dur = (float(durations.loc[DC][route[0]]) +
                                 float(durations.loc[route[-1]-1][DC+1])) / 3600
 
@@ -172,11 +158,15 @@ def cost_routes(routes, weekday):
         route_demand = 0
 
         for node in route:
+            
+            # Initialise variables 
+            
             node_demand = 0
             node_average = 0
             node_stddev = 0
             travel_dur = 0
 
+            # Find node demands, and travel duration if not the last or only node in the route 
             if weekday:
                 node_demand = generateNodeDemand(node, weekday)
                 if len(route) > 1 and node != route[len(route)-1]:
@@ -185,8 +175,11 @@ def cost_routes(routes, weekday):
                 node_demand = generateNodeDemand(node, weekday) 
                 if len(route) > 1 and node != route[len(route)-1]:
                     travel_dur = generateTravelDuration(node, weekday=False)               
-
+            
+            # Add number of pallets demanded to current route demand 
             route_demand += node_demand
+            
+            # Calculate pallet unloading duration 
             pallet_dur = node_demand * (7.5/60)
 
             # Duration is calculated from node to node and then added to total duration
