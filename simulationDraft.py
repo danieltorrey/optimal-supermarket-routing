@@ -106,7 +106,7 @@ def cost_routes(routes, weekday):
             node_stddev = demand.loc[node-1][4]
             node_demand = np.random.normal(node_average, node_stddev) 
         else:
-            node__average = demand.loc[node-1][1] 
+            node_average = demand.loc[node-1][1] 
             node_stddev = demand.loc[node-1][3]
             node_demand = np.random.normal(node_average, node_stddev) 
 
