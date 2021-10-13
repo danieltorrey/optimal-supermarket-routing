@@ -288,8 +288,8 @@ expectedTimes = np.zeros((6,10))
 completionTimes = np.zeros((6,10))
 
 # Carry out simulations 
-for i in range(len(completionTimes.shape[0])):
-    for j in range(len(completionTimes.shape[1])): 
+for i in range(completionTimes.shape[0]):
+    for j in range(completionTimes.shape[1]): 
         
         # Set expected times for each region 
         expectedTimes[i][j] = optimisedCosts[i]
