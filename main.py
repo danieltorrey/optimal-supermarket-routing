@@ -303,14 +303,15 @@ def Visualise():
 
     # get current directory for folder navigation
     directory = os.getcwd()
-
-    # initialise array of routes
-    routes = []
-
+    
+    # colours to distinguish different routes
+    colours = ['red', 'green', 'black', 'blue', '#C748E7', '#FB8B24', '#E748BF']
+    
     # for the regions in the 'weekday' folder
     for r in range(1, 7):
         # get new map
         coords, akl = CreateMap()
+        # re-set the routes array
         routes = []
         # get the path for the file name
         filename = (directory+os.sep+'results' + os.sep +
@@ -346,7 +347,7 @@ def Visualise():
                 coordinates=locii, profile='driving-hgv', format='geojson', validate=False)
             # add the route to the map
             folium.PolyLine(locations=[list(reversed(
-                coord)) for coord in route['features'][0]['geometry']['coordinates']]).add_to(akl)
+                coord)) for coord in route['features'][0]['geometry']['coordinates']], color=colours[i]).add_to(akl)
 
         # save the finalised visualisation to html file
         # save title as
