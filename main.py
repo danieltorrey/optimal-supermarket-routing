@@ -279,19 +279,20 @@ def CreateMap():
         elif locations.Type[i] == "Distribution Centre":
             iconCol = "black"
         # add all colour changes to the map
-        folium.Marker(list(reversed(coords[i])),  popup=locations.Store[i],  icon=folium.Icon(
-            color=iconCol)).add_to(akl)
+        folium.CircleMarker(list(reversed(coords[i])),  popup=locations.Store[i],
+                            color=iconCol, radius=6).add_to(akl)
 
     return coords, akl
 
 
-def Visualise():
+def Visualise(num_regions):
     '''
     This function adds the optimised routes to a map/maps and saves the outcome to html file
 
     Parameters:
     ------------
-    None
+    num_regions : int
+        Number of regions Akl has been divided into, for use in individual maps
 
     Returns:
     ------------
@@ -303,56 +304,52 @@ def Visualise():
 
     # get current directory for folder navigation
     directory = os.getcwd()
-    
+
     # colours to distinguish different routes
-    colours = ['red', 'green', 'black', 'blue', '#C748E7', '#FB8B24', '#E748BF']
-    
+    colours = ['red', 'blue']
+
     # for the regions in the 'weekday' folder
-    for r in range(1, 7):
+    for r in range(1, num_regions+1, 2):
         # get new map
-        coords, akl = CreateMap()
-        # re-set the routes array
-        routes = []
-        # get the path for the file name
-        filename = (directory+os.sep+'results' + os.sep +
-                    'weekday') + (os.sep + 'Routes - Region ' + str(r))
-        # open the file
-        file = open(filename, 'r')
-        # add each line (a single route) to the list of all routes
-        routes += file.readlines()
-        file.close()
-        # do the same for the weekend
-        filename = (directory+os.sep+'results' + os.sep +
-                    'weekend') + (os.sep + 'Routes - Region ' + str(r))
-        file = open(filename, 'r')
-        routes += file.readlines()
-        file.close()
+        for period in ('weekday', 'weekend'):
+            coords, akl = CreateMap()
+            for reg in (0, 1):
+                # re-set the routes array
+                routes = []
+                # get the path for the file name
+                filename = (directory+os.sep+'results' + os.sep +
+                            period) + (os.sep + 'Routes - Region ' + str(r+reg))
+                # open the file
+                file = open(filename, 'r')
+                # add each line (a single route) to the list of all routes
+                routes += file.readlines()
+                file.close()
 
-        # remove all next line symbols from the end of the arrays
-        routes = [elem.strip('\n') for elem in routes]
+                # remove all next line symbols from the end of the arrays
+                routes = [elem.strip('\n') for elem in routes]
 
-        for i in range(0, len(routes)):
-            # remove the brackets read in from the file as strings, split the string data into individual strings
-            routes[i] = routes[i].strip('[').strip(']').split(', ')
-            # convert each string to integer
-            routes[i] = [int(j) for j in routes[i]]
+                for i in range(0, len(routes)):
+                    # remove the brackets read in from the file as strings, split the string data into individual strings
+                    routes[i] = routes[i].strip('[').strip(']').split(', ')
+                    # convert each string to integer
+                    routes[i] = [int(j) for j in routes[i]]
 
-        # for each route
-        for i in range(0, len(routes)):
-            # add the route locations to the coordinate list
-            locii = [coords[-1]]+[coords[node-1]
-                                  for node in routes[i]]+[coords[-1]]
-            # create the route
-            route = client.directions(
-                coordinates=locii, profile='driving-hgv', format='geojson', validate=False)
-            # add the route to the map
-            folium.PolyLine(locations=[list(reversed(
-                coord)) for coord in route['features'][0]['geometry']['coordinates']], color=colours[i]).add_to(akl)
+                # for each route
+                for i in range(0, len(routes)):
+                    # add the route locations to the coordinate list
+                    locii = [coords[-1]]+[coords[node-1]
+                                          for node in routes[i]]+[coords[-1]]
+                    # create the route
+                    route = client.directions(
+                        coordinates=locii, profile='driving-hgv', format='geojson', validate=False)
+                    # add the route to the map
+                    folium.PolyLine(locations=[list(reversed(
+                        coord)) for coord in route['features'][0]['geometry']['coordinates']], color=colours[reg]).add_to(akl)
 
-        # save the finalised visualisation to html file
-        # save title as
-        title = "Region_" + str(r) + ".html"
-        akl.save(title)
+            # save the finalised visualisation to html file
+            # save title as
+            title = period + "region_" + str(r) + "_" + str(r+1) + ".html"
+            akl.save(title)
 
 
 if __name__ == "__main__":
