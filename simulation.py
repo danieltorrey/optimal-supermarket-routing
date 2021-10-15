@@ -198,8 +198,10 @@ def cost_routes(routes, weekday):
         else:
             route_cost = total_dur*225
 
+        DailyFreight = []
         if route_demand > 26:
-            route_cost = 999999
+            route_cost = 2000
+            DailyFreight.append(route_number)
 
         # Appending individual route cost to region route costs dictionary
         route_costs[route_number] = route_cost
@@ -207,7 +209,7 @@ def cost_routes(routes, weekday):
         # Incrementing route number
         route_number += 1
 
-    return route_costs
+    return route_costs, DailyFreight
 
 
 def optimise_routes(region, region_no, length, weekday):
@@ -219,7 +221,7 @@ def optimise_routes(region, region_no, length, weekday):
     visit_matrix = route_matrix(reg_routes, region)
 
     # Costing each route for each region
-    reg_cost = cost_routes(reg_routes, time_period)
+    reg_cost, DailyFreight = cost_routes(reg_routes, time_period)
 
     # Setting up route variable for LP
     route = {}
