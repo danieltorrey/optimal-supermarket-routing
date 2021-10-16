@@ -1,0 +1,4 @@
+The average cost for region 4 is: 846.5584994298669
+The lower bound of the 95% percentile interval is:  606.7295158965056
+The upper bound of the 95% percentile interval is:  1063.620269176315
+The simulated cost of region 4 is greater than our optimised cost 0.0 % of the time

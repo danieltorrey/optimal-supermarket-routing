@@ -1,0 +1,4 @@
+The average cost for region 3 is: 1313.1019697122663
+The lower bound of the 95% percentile interval is:  1093.1981623138504
+The upper bound of the 95% percentile interval is:  1538.4453048758
+The simulated cost of region 3 is greater than our optimised cost 0.1 % of the time

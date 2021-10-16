@@ -19,7 +19,7 @@ def get_routes(weekday):
         # Read in routes for each region from the 'weekday' folder
         for i in range (1, 7):
             # Get path for file name
-            folder = (directory + os.sep + 'results' + os.sep + 'weekday')
+            folder = (directory + os.sep + 'closure_results' + os.sep + 'weekday')
             filename = folder + (os.sep + 'Routes - Region ' + str(i))
             # Open the file
             file = open(filename, 'r')
@@ -31,7 +31,7 @@ def get_routes(weekday):
         # Read in routes for each region from the 'weekend' folder 
         for i in range (1, 7):
             # Get path for file name 
-            folder = (directory + os.sep + 'results' + os.sep + 'weekend')
+            folder = (directory + os.sep + 'closure_results' + os.sep + 'weekend')
             filename = folder + (os.sep + 'Routes - Region ' + str(i))
             # Open the file
             file = open(filename, 'r')
@@ -56,16 +56,16 @@ def get_routes(weekday):
 def cost_routes(routes, weekday): 
 
     # Reading in the durations data from the csv file
-    durations = pd.read_csv('WoolworthsTravelDurations.csv')
+    durations = pd.read_csv('WoolworthsTravelDurations2.csv')
 
     # Reading the dataset containg average pallet demand estimates
-    demand = pd.read_csv('WoolWorthsDemands.csv')
-    demand = demand[0:66]
+    demand = pd.read_csv('WoolWorthsDemands2.csv')
+    demand = demand[0:60]
 
     # Initialising region route costs dictionary and route number variable
     route_costs = {}
     route_number = 1
-    DC = 65
+    DC = 59
 
     def generateNodeDemand(node, weekday):
 
@@ -225,9 +225,9 @@ else:
 
 # Get total cost for optimised routing schedule from Part 1
 if time_period == True: 
-    optimised_cost = [3047.00, 2750.47, 3348.99, 2623.63, 3213.96, 3310.85] # weekday solutions
+    optimised_cost = [3047, 2716, 3326, 2624, 3139, 3191] # weekday solutions
 else: 
-    optimised_cost = [2190.65, 1570.52, 1861.98, 1205.50, 1819.53, 1814.06] # weekend solutions
+    optimised_cost = [2191, 1542, 1862, 1206, 1634, 1683] # weekend solutions
 
 # Initialise arrays for simulations 
 expected_costs = [0] * 1000
@@ -271,7 +271,7 @@ for i in range(1,7):
     plt.close()
 
 
-    sys.stdout = open("Simulation Results for Region {}".format(i), "w")
+    sys.stdout = open("Simulation with Closed Stores Results for Region {}".format(i), "w")
     
     # Print routes where hired trucks are used
     if len(DailyFreight) != 0: 

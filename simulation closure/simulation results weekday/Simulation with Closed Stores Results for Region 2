@@ -1,0 +1,5 @@
+There are daily freight trucks used on the following routes: [13, 57, 54, 17]
+The average cost for region 2 is: 2944.0714883031133
+The lower bound of the 95% percentile interval is:  1350.8247503145142
+The upper bound of the 95% percentile interval is:  4093.545073233351
+The simulated cost of region 2 is greater than our optimised cost 60.5 % of the time

@@ -1,0 +1,4 @@
+The average cost for region 1 is: 1838.36350906362
+The lower bound of the 95% percentile interval is:  1568.2737296869043
+The upper bound of the 95% percentile interval is:  2107.812974388339
+The simulated cost of region 1 is greater than our optimised cost 0.8999999999999999 % of the time
