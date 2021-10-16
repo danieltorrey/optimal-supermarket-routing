@@ -85,18 +85,26 @@ def cost_routes(routes, weekday):
     
     def generateTravelDuration(node, weekday): 
 
-        # Get travel duration from current node to next node
+        # Get travel duration from current node to next node and calculate 
+        # average unloading time for one store (in hours)
         if weekday: 
             travel_dur = float(
-                durations.loc[node-1][route[route.index(node)+1]]) / 3600  # in hours
-            # travel adj and pick a random number between 40 to 55 maybe
+                durations.loc[node-1][route[route.index(node)+1]]) / 3600  
+            avg_unloading = demand['Rounded Weekday'].mean() * (7.5/60)
         else: 
             travel_dur = float(
-                durations.loc[node-1][route[route.index(node)+1]]) / 3600  # in hours
+                durations.loc[node-1][route[route.index(node)+1]]) / 3600  
+            avg_unloading = demand['Rounded Saturday'].mean() * (7.5/60)
 
-        # Assume there is one peak hour of traffic during each four hour shift 
-        # where motorists need to allow 55% more time for travel
-        traffic_adj = (travel_dur / 4) * 1.55 
+        # Set parameters for truncnorm function
+        a = travel_dur - travel_dur * 1.3 
+        b = travel_dur * 1.6 - travel_dur * 1.3
+
+        # Generate random values from truncated norm distribution 
+        traffic_adj = stats.truncnorm.rvs(a, b, travel_dur * 1.3, 1) / 4
+
+        # Remove average unloading time for one store
+        traffic_adj -= avg_unloading
 
         # Add traffic adjustment to travel duration 
         travel_dur += traffic_adj 
@@ -106,18 +114,21 @@ def cost_routes(routes, weekday):
 
     def generateTravelDurationDC(weekday): 
     
-        # Similar function for travel duration from DC to start node and end node to DC 
-
+        # Similar function for travel duration from DC to start node and end node
+        # to DC, and calculate average unloading time for one store (in hours)
         if weekday: 
             DC_travel_dur =  (float(durations.loc[DC][route[0]]) +
-                                float(durations.loc[route[-1]-1][DC+1])) / 3600
+                                float(durations.loc[route[-1]-1][DC+1])) / 3600 
         else: 
             DC_travel_dur = (float(durations.loc[DC][route[0]]) +
                                 float(durations.loc[route[-1]-1][DC+1])) / 3600
+                                
+        # Set parameters for truncnorm function
+        a = DC_travel_dur - DC_travel_dur * 1.3 
+        b = DC_travel_dur * 1.6 - DC_travel_dur * 1.3
 
-        # Assume there is one peak hour of traffic during each four hour shift 
-        # where motorists need to allow 55% more time for travel
-        traffic_adj = (travel_dur / 4) * 1.55
+        # Generate random values from truncated norm distribution
+        traffic_adj = stats.truncnorm.rvs(a, b, DC_travel_dur * 1.3, 1) / 4
 
         # Add traffic adjustment to travel duration
         DC_travel_dur += traffic_adj 
@@ -214,10 +225,6 @@ for i in range(len(observed_costs)):
     costs = route_costs.values()
     total_cost = sum(costs)
 
-    # print(route_costs)
-    # print(DailyFreight)
-    # print(total_cost)
-
     # Populate arrays with appropriate costs
     expected_costs[i] = optimised_cost
     observed_costs[i] = total_cost
@@ -228,3 +235,21 @@ plt.title("Distribution of Simulated Costs \n 1000 simulations")
 plt.xlabel("Total Routing Cost")
 plt.ylabel("Probability")
 plt.show()
+
+# Average routing cost
+average_cost = np.mean(observed_costs)
+
+print("The average routing cost is: ", average_cost)
+
+# Percentile interval
+observed_costs.sort()
+lowerBound = observed_costs[25]
+upperBound = observed_costs[975]
+
+print("The lower bound of the 95% percentile interval is: ", lowerBound)
+print("The upper bound of the 95% percentile interval is: ", upperBound)
+
+# Error rate
+error_rate = sum(np.greater(observed_costs, expected_costs))/len(observed_costs)
+
+print("The simulated cost of the route is greater than our optimised cost", error_rate*100, "% of the time")
