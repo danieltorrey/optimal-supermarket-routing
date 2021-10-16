@@ -3,85 +3,57 @@ import numpy as np
 import pandas as pd
 from pulp import *
 from itertools import permutations
-import math
-import re
-import os
+import os 
+from scipy import stats
+import matplotlib.pyplot as plt
 
-def initialise_regions(weekday):
+def get_routes(weekday): 
+    
+    # Initialise route array
+    routes = [] 
+    
+    # Get current directory 
+    directory = os.getcwd()
 
-    # Reading in the data from the csv file
-    data = pd.read_csv('WoolworthsStores.csv')
-    data = data[0:65]
+    if weekday:     
+        # Read in routes for each region from the 'weekday' folder
+        for i in range (1, 7):
+            # Get path for file name
+            folder = (directory + os.sep + 'results' + os.sep + 'weekday')
+            filename = folder + (os.sep + 'Routes - Region ' + str(i))
+            # Open the file
+            file = open(filename, 'r')
+            # Add each route to the list of routes 
+            routes += file.readlines()
+            # Close file 
+            file.close()
+    else:
+        # Read in routes for each region from the 'weekend' folder 
+        for i in range (1, 7):
+            # Get path for file name 
+            folder = (directory + os.sep + 'results' + os.sep + 'weekend')
+            filename = folder + (os.sep + 'Routes - Region ' + str(i))
+            # Open the file
+            file = open(filename, 'r')
+            # Add each route to the list of routes
+            routes += file.readlines() 
+            # Close file
+            file.close() 
 
-    # Initialising dictionaries for each of the regions
-    reg1, reg2, reg3, reg4, reg5, reg6 = {}, {}, {}, {}, {}, {}
+    # remove all next line symbols from the end of the arrays
+    routes = [elem.strip('\n') for elem in routes]
 
-    # Saving the store name and its corresponding region for each store to a dictionary
-    for i in range(1, len(data)+1):
-        store_name = str(data.iloc[i-1]['Store'])
-        region_number = int(data.iloc[i-1]['Region'])
-
-        if weekday:
-            store_demand = int(data.iloc[i-1]['Rounded Weekday'])
-        else:
-            store_demand = int(data.iloc[i-1]['Rounded Saturday'])
-
-        if store_demand != 0:
-            if region_number == 1:
-                reg1[store_name] = i
-            elif region_number == 2:
-                reg2[store_name] = i
-            elif region_number == 3:
-                reg3[store_name] = i
-            elif region_number == 4:
-                reg4[store_name] = i
-            elif region_number == 5:
-                reg5[store_name] = i
-            elif region_number == 6:
-                reg6[store_name] = i
-
-    return reg1, reg2, reg3, reg4, reg5, reg6
-
-
-def create_routes(region, length):
-
-    # Initialisation of routes lists
-    routes = []
-
-    # Saving the nodes in the region to an array
-    nodes = []
-    for _, v in region.items():
-        nodes.append(int(v))
-
-    # Generating all possible routes for the conditions specified
-    for i in range(1, length+1):
-        perm = permutations(nodes, i)
-        for j in perm:
-            routes.append(list(j))
+    for i in range(0, len(routes)):
+        # remove the brackets read in from the file as strings
+        # and split the string data into individual strings
+        routes[i] = routes[i].strip('[').strip(']').split(', ')
+        # convert each string to integer
+        routes[i] = [int(j) for j in routes[i]]
 
     return routes
 
 
-def route_matrix(routes, region):
-
-    # Saving the nodes in the region to an array
-    nodes = []
-    for _, v in region.items():
-        nodes.append(int(v))
-
-    # Initialising matrix for each route
-    route_matrix = np.zeros(shape=(len(nodes), len(routes)))
-
-    # Saving a value of 1 to positions in the matrix
-    # Rows correspond to node number and columns correspond to each route
-    for route in routes:
-        for node in route:
-            route_matrix[nodes.index(node)][routes.index(route)] = 1
-
-    return route_matrix
-
-
-def cost_routes(routes, weekday):
+def cost_routes(routes, weekday): 
 
     # Reading in the durations data from the csv file
     durations = pd.read_csv('WoolworthsTravelDurations.csv')
@@ -108,21 +80,31 @@ def cost_routes(routes, weekday):
             node_stddev = demand.loc[node-1][3]
             node_demand = np.random.normal(node_average, node_stddev) 
 
-        return node_demand
+        return node_demand 
 
+    
     def generateTravelDuration(node, weekday): 
 
-        # Get travel duration from current node to next node
+        # Get travel duration from current node to next node and calculate 
+        # average unloading time for one store (in hours)
         if weekday: 
             travel_dur = float(
-                durations.loc[node-1][route[route.index(node)+1]]) / 3600  # in hours
+                durations.loc[node-1][route[route.index(node)+1]]) / 3600  
+            avg_unloading = demand['Rounded Weekday'].mean() * (7.5/60)
         else: 
             travel_dur = float(
-                durations.loc[node-1][route[route.index(node)+1]]) / 3600  # in hours
+                durations.loc[node-1][route[route.index(node)+1]]) / 3600  
+            avg_unloading = demand['Rounded Saturday'].mean() * (7.5/60)
 
-        # Assume there is one peak hour of traffic during each four hour shift 
-        # where motorists need to allow 55% more time for travel
-        traffic_adj = (travel_dur / 4) * 1.55 
+        # Set parameters for truncnorm function
+        a = travel_dur - travel_dur * 1.3 
+        b = travel_dur * 1.6 - travel_dur * 1.3
+
+        # Generate random values from truncated norm distribution 
+        traffic_adj = stats.truncnorm.rvs(a, b, travel_dur * 1.3, 1) / 4
+
+        # Remove average unloading time for one store
+        traffic_adj -= avg_unloading
 
         # Add traffic adjustment to travel duration 
         travel_dur += traffic_adj 
@@ -132,18 +114,21 @@ def cost_routes(routes, weekday):
 
     def generateTravelDurationDC(weekday): 
     
-        # Similar function for travel duration from DC to start node and end node to DC 
-
+        # Similar function for travel duration from DC to start node and end node
+        # to DC, and calculate average unloading time for one store (in hours)
         if weekday: 
             DC_travel_dur =  (float(durations.loc[DC][route[0]]) +
-                                float(durations.loc[route[-1]-1][DC+1])) / 3600
+                                float(durations.loc[route[-1]-1][DC+1])) / 3600 
         else: 
             DC_travel_dur = (float(durations.loc[DC][route[0]]) +
                                 float(durations.loc[route[-1]-1][DC+1])) / 3600
+                                
+        # Set parameters for truncnorm function
+        a = DC_travel_dur - DC_travel_dur * 1.3 
+        b = DC_travel_dur * 1.6 - DC_travel_dur * 1.3
 
-        # Assume there is one peak hour of traffic during each four hour shift 
-        # where motorists need to allow 55% more time for travel
-        traffic_adj = (travel_dur / 4) * 1.55
+        # Generate random values from truncated norm distribution
+        traffic_adj = stats.truncnorm.rvs(a, b, DC_travel_dur * 1.3, 1) / 4
 
         # Add traffic adjustment to travel duration
         DC_travel_dur += traffic_adj 
@@ -151,19 +136,18 @@ def cost_routes(routes, weekday):
         return DC_travel_dur
 
 
-    for route in routes:
+    for route in routes: 
 
-        # Initialising total duration required for route
+       # Initialising total duration required for route
         total_dur = 0
         route_demand = 0
 
         for node in route:
             
             # Initialise variables 
-            
             node_demand = 0
-            node_average = 0
-            node_stddev = 0
+            # node_average = 0
+            # node_stddev = 0
             travel_dur = 0
 
             # Find node demands, and travel duration if not the last or only node in the route 
@@ -194,13 +178,16 @@ def cost_routes(routes, weekday):
 
         # Calculating cost for route
         if total_dur > 4:
-            route_cost = 900+(total_dur-4)*275
+            route_cost = 900 + (total_dur - 4) * 275
         else:
-            route_cost = total_dur*225
+            route_cost = total_dur * 225
 
+        # Initialise array for routes that require Daily Freight Trucks
         DailyFreight = []
+
+        # If demand for the route exceeds truck demand, add cost for hired truck
         if route_demand > 26:
-            route_cost = 2000
+            route_cost += 2000
             DailyFreight.append(route_number)
 
         # Appending individual route cost to region route costs dictionary
@@ -211,98 +198,96 @@ def cost_routes(routes, weekday):
 
     return route_costs, DailyFreight
 
+# Run simulation
 
-def optimise_routes(region, region_no, length, weekday):
+# Set to True for a weekday, False for a weekend
+time_period = True 
 
-    # Creating all possible routes for each region from the conditions specified
-    reg_routes = create_routes(region, length)
+# Get routes 
+routes = get_routes(time_period)
 
-    # Creating route matrix to see if node is visited or not
-    visit_matrix = route_matrix(reg_routes, region)
-
-    # Costing each route for each region
-    reg_cost, DailyFreight = cost_routes(reg_routes, time_period)
-
-    # Setting up route variable for LP
-    route = {}
-    for k, v in reg_cost.items():
-        route[k] = k
-
-    # Generating LP
-    prob = LpProblem("The Route Problem", LpMinimize)
-
-    # Dictionary for Route variable in LP
-    route_vars = LpVariable.dicts("Route", route, cat='Binary')
-
-    # Objective function
-    prob += lpSum([reg_cost[i]*route_vars[i]
-                   for i in route_vars]), "Route Optimisation Function"
-
-    # Numbered list for node constraint
-    num = list(range(1, len(route_vars)+1))
-
-    # Constraint for each node to be visited once
-    for row in range(np.shape(visit_matrix)[0]):
-        con = pd.Series(visit_matrix[row], index=num)
-        con_dict = dict(con)
-        prob += lpSum([con_dict[i]*route_vars[i]
-                       for i in route_vars]) == 1, "Node_{}".format(row)
-
-    # Calculating amount of truck routes available
-    trucks = round((len(region)/65)*60)
-
-    # Truck Constraint
-    prob += lpSum([1*route_vars[i]
-                   for i in route_vars]) <= trucks, "Truck Constraint"
-
-    # Solve and suppress output 
-    prob.solve(PULP_CBC_CMD(msg=0))
-
-    return prob.objective.value()
-
-
-# Evaluate routing schedule costs
-
-# True = weekday, False = weekend
-time_period = False
-
-# Specify max number of nodes that routes visit
-length = 4
-
-# Initialise regions depending on either weekday or weekend demand
-reg1, reg2, reg3, reg4, reg5, reg6 = initialise_regions(time_period)
-
-# Optimal route costs already obtained (2dp) for each region 
-if time_period == False: 
-    optimisedCosts = [2190.65, 1570.52, 1861.98, 1205.50, 1819.53, 1814.06] # weekend solutions
+# Split routes into regions 
+if time_period == True:
+    reg1 = routes[0:3]
+    reg2 = routes[3:6]
+    reg3 = routes[6:10]
+    reg4 = routes[10:13]
+    reg5 = routes[13:17]
+    reg6 = routes[17:21]
 else: 
-    optimisedCosts = [3047.00, 2750.47, 3348.99, 2623.63, 3213.96, 3310.85] # weekday solutions
+    reg1 = routes[0:3]
+    reg2 = routes[3:5]
+    reg3 = routes[5:8]
+    reg4 = routes[8:10]
+    reg5 = routes[10:13]
+    reg6 = routes[13:16]
 
-# Initialise matrices for simulations (run 10 times)
-expectedTimes = np.zeros((6,10))
-completionTimes = np.zeros((6,10))
 
-# Carry out simulations 
-for i in range(completionTimes.shape[0]): # for i in range 6
-    for j in range(completionTimes.shape[1]): # for j in range 10
-        
-        # Set expected times for each region 
-        expectedTimes[i][j] = optimisedCosts[i]
+# Get total cost for optimised routing schedule from Part 1
+if time_period == True: 
+    optimised_cost = [3047.00, 2750.47, 3348.99, 2623.63, 3213.96, 3310.85] # weekday solutions
+else: 
+    optimised_cost = [2190.65, 1570.52, 1861.98, 1205.50, 1819.53, 1814.06] # weekend solutions
 
-        # Region 1 Simulation 
-        completionTimes[0][j] = round(optimise_routes(reg1, 1, length, time_period),2)
+# Initialise arrays for simulations 
+expected_costs = [0] * 1000
+observed_costs = [0] * 1000
 
-        # Region 2 Simulation 
-        completionTimes[1][j] = round(optimise_routes(reg2, 2, length, time_period),2)
+# Simulation for each region 
+for i in range(1,7): 
 
-        # Region 3 Simulation 
-        completionTimes[2][j] = round(optimise_routes(reg3, 3, length, time_period),2)
+    # Set appropriate routes for the region
+    if i == 1: 
+        routes = reg1
+    elif i == 2:
+        routes = reg2
+    elif i == 3:
+        routes = reg3
+    elif i == 4:
+        routes = reg4
+    elif i == 5:
+        routes = reg5
+    elif i == 6:
+        routes = reg6
 
-        # Region 4 Simulation 
-        completionTimes[3][j] = round(optimise_routes(reg4, 4, length, time_period),2)
-        
-        # Region 5 Simulation 
-        completionTimes[4][j] = round(optimise_routes(reg5, 5, length, time_period),2)
+    for j in range(len(observed_costs)):
+        # Cost routes
+        route_costs, DailyFreight = cost_routes(routes, time_period)
 
-        # Region 6 Simulation 
-        completionTimes[5][j] = round(optimise_routes(reg6, 6, length, time_period),2)
+        # Sum cost of routes for total cost 
+        costs = route_costs.values()
+        total_cost = sum(costs)
+
+        # Populate arrays with appropriate costs
+        expected_costs[j] = optimised_cost[i-1]
+        observed_costs[j] = total_cost
+
+    # Visualise cost distributions
+    plt.hist(observed_costs, density=True, histtype='stepfilled', alpha=0.2)
+    plt.title("Distribution of Simulated Costs for Region " + str(i) + "\n 1000 simulations")
+    plt.xlabel("Total Routing Cost")
+    plt.ylabel("Probability")
+    plt.savefig("Region " + str(i) +".png", format="PNG")
+    plt.close()
+
+    # Print routes where hired trucks are used
+    if len(DailyFreight) != 0: 
+        print("There are daily freight trucks used on the following routes:", routes[int(DailyFreight[0])-1]) 
+
+    # Average routing cost
+    average_cost = np.mean(observed_costs)
+
+    print("The average cost for region " + str(i) + " is:", average_cost)
+
+    # Percentile interval
+    observed_costs.sort()
+    lowerBound = observed_costs[25]
+    upperBound = observed_costs[975]
+
+    print("The lower bound of the 95% percentile interval is: ", lowerBound)
+    print("The upper bound of the 95% percentile interval is: ", upperBound)
+
+    # Error rate
+    error_rate = sum(np.greater(observed_costs, expected_costs))/len(observed_costs)
+
+    print("The simulated cost of region " + str(i) +  " is greater than our optimised cost", error_rate*100, "% of the time")
