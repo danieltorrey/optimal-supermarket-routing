@@ -233,8 +233,6 @@ else:
 expected_costs = [0] * 1000
 observed_costs = [0] * 1000
 
-routes = reg1 
-
 # Simulation for each region 
 for i in range(1,7): 
 
