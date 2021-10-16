@@ -206,50 +206,90 @@ time_period = True
 # Get routes 
 routes = get_routes(time_period)
 
+# Split routes into regions 
+if time_period == True:
+    reg1 = routes[0:3]
+    reg2 = routes[3:6]
+    reg3 = routes[6:10]
+    reg4 = routes[10:13]
+    reg5 = routes[13:17]
+    reg6 = routes[17:21]
+else: 
+    reg1 = routes[0:3]
+    reg2 = routes[3:5]
+    reg3 = routes[5:8]
+    reg4 = routes[8:10]
+    reg5 = routes[10:13]
+    reg6 = routes[13:16]
+
+
 # Get total cost for optimised routing schedule from Part 1
 if time_period == True: 
-    optimised_cost = np.sum([3047.00, 2750.47, 3348.99, 2623.63, 3213.96, 3310.85]) # weekday solutions
+    optimised_cost = [3047.00, 2750.47, 3348.99, 2623.63, 3213.96, 3310.85] # weekday solutions
 else: 
-    optimised_cost = np.sum([2190.65, 1570.52, 1861.98, 1205.50, 1819.53, 1814.06]) # weekend solutions
+    optimised_cost = [2190.65, 1570.52, 1861.98, 1205.50, 1819.53, 1814.06] # weekend solutions
 
 # Initialise arrays for simulations 
 expected_costs = [0] * 1000
 observed_costs = [0] * 1000
 
-for i in range(len(observed_costs)):
+routes = reg1 
 
-    # Cost routes
-    route_costs, DailyFreight = cost_routes(routes, time_period)
+# Simulation for each region 
+for i in range(1,7): 
 
-    # Sum cost of routes for total cost 
-    costs = route_costs.values()
-    total_cost = sum(costs)
+    # Set appropriate routes for the region
+    if i == 1: 
+        routes = reg1
+    elif i == 2:
+        routes = reg2
+    elif i == 3:
+        routes = reg3
+    elif i == 4:
+        routes = reg4
+    elif i == 5:
+        routes = reg5
+    elif i == 6:
+        routes = reg6
 
-    # Populate arrays with appropriate costs
-    expected_costs[i] = optimised_cost
-    observed_costs[i] = total_cost
+    for j in range(len(observed_costs)):
+        # Cost routes
+        route_costs, DailyFreight = cost_routes(routes, time_period)
 
-# Visualise cost distributions
-plt.hist(observed_costs, density=True, histtype='stepfilled', alpha=0.2)
-plt.title("Distribution of Simulated Costs \n 1000 simulations")
-plt.xlabel("Total Routing Cost")
-plt.ylabel("Probability")
-plt.show()
+        # Sum cost of routes for total cost 
+        costs = route_costs.values()
+        total_cost = sum(costs)
 
-# Average routing cost
-average_cost = np.mean(observed_costs)
+        # Populate arrays with appropriate costs
+        expected_costs[j] = optimised_cost[i-1]
+        observed_costs[j] = total_cost
 
-print("The average routing cost is: ", average_cost)
+    # Visualise cost distributions
+    plt.hist(observed_costs, density=True, histtype='stepfilled', alpha=0.2)
+    plt.title("Distribution of Simulated Costs for Region " + str(i) + "\n 1000 simulations")
+    plt.xlabel("Total Routing Cost")
+    plt.ylabel("Probability")
+    plt.savefig("Region " + str(i) +".png", format="PNG")
+    plt.close()
 
-# Percentile interval
-observed_costs.sort()
-lowerBound = observed_costs[25]
-upperBound = observed_costs[975]
+    # Print routes where hired trucks are used
+    if len(DailyFreight) != 0: 
+        print("There are daily freight trucks used on the following routes:", routes[int(DailyFreight[0])-1]) 
 
-print("The lower bound of the 95% percentile interval is: ", lowerBound)
-print("The upper bound of the 95% percentile interval is: ", upperBound)
+    # Average routing cost
+    average_cost = np.mean(observed_costs)
 
-# Error rate
-error_rate = sum(np.greater(observed_costs, expected_costs))/len(observed_costs)
+    print("The average cost for region " + str(i) + " is:", average_cost)
 
-print("The simulated cost of the route is greater than our optimised cost", error_rate*100, "% of the time")
+    # Percentile interval
+    observed_costs.sort()
+    lowerBound = observed_costs[25]
+    upperBound = observed_costs[975]
+
+    print("The lower bound of the 95% percentile interval is: ", lowerBound)
+    print("The upper bound of the 95% percentile interval is: ", upperBound)
+
+    # Error rate
+    error_rate = sum(np.greater(observed_costs, expected_costs))/len(observed_costs)
+
+    print("The simulated cost of region " + str(i) +  " is greater than our optimised cost", error_rate*100, "% of the time")
