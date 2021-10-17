@@ -59,7 +59,7 @@ def cost_routes(routes, weekday):
     durations = pd.read_csv('WoolworthsTravelDurations.csv')
 
     # Reading the dataset containg average pallet demand estimates
-    demand = pd.read_csv('WoolWorthsDemands.csv')
+    demand = pd.read_csv('WoolworthsDemands.csv')
     demand = demand[0:66]
 
     # Initialising region route costs dictionary and route number variable

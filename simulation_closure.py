@@ -19,7 +19,7 @@ def get_routes(weekday):
         # Read in routes for each region from the 'weekday' folder
         for i in range (1, 7):
             # Get path for file name
-            folder = (directory + os.sep + 'closure_results' + os.sep + 'weekday')
+            folder = (directory + os.sep + 'results_closure' + os.sep + 'weekday')
             filename = folder + (os.sep + 'Routes - Region ' + str(i))
             # Open the file
             file = open(filename, 'r')
@@ -31,7 +31,7 @@ def get_routes(weekday):
         # Read in routes for each region from the 'weekend' folder 
         for i in range (1, 7):
             # Get path for file name 
-            folder = (directory + os.sep + 'closure_results' + os.sep + 'weekend')
+            folder = (directory + os.sep + 'results_closure' + os.sep + 'weekend')
             filename = folder + (os.sep + 'Routes - Region ' + str(i))
             # Open the file
             file = open(filename, 'r')
@@ -59,7 +59,7 @@ def cost_routes(routes, weekday):
     durations = pd.read_csv('WoolworthsTravelDurations2.csv')
 
     # Reading the dataset containg average pallet demand estimates
-    demand = pd.read_csv('WoolWorthsDemands2.csv')
+    demand = pd.read_csv('WoolworthsDemands2.csv')
     demand = demand[0:60]
 
     # Initialising region route costs dictionary and route number variable
