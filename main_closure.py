@@ -201,7 +201,7 @@ def optimise_routes(region, region_no, length, weekday):
     for i in range(1, len(reg_routes)+1):
         routes_id[i] = reg_routes[i-1]
 
-    os.chdir('results')
+    os.chdir('results_closure')
 
     # Txt file to output LP results
     if weekday:
@@ -239,119 +239,6 @@ def optimise_routes(region, region_no, length, weekday):
     os.chdir('..')
 
 
-def CreateMap():
-    '''
-    This function creates a map of all supermarket locations, coloured by branch
-
-    Parameters:
-    ------------
-    None
-
-    Returns:
-    ------------
-    coords : list
-        list of coordinates from data, used for folium operations
-    map : folium.Map
-        the created map with coloured markers
-    '''
-
-    locations = pd.read_csv('WoolworthsLocations.csv')
-
-    coords = locations[['Long', 'Lat']]
-    coords = coords.to_numpy().tolist()  # make arrays into lists
-
-    # reverse columns for folium to read as lat, long
-    akl = folium.Map(location=list(reversed(coords[2])), zoom_start=10)
-
-    folium.Marker(list(reversed(coords[65])), popup=locations.Store[0], icon=folium.Icon(
-        color='black')).add_to(akl)
-
-    # colour location tags based off branch
-    for i in range(0,  len(coords)):
-        if locations.Type[i] == "Countdown":
-            iconCol = "green"
-        elif locations.Type[i] == "FreshChoice":
-            iconCol = "blue"
-        elif locations.Type[i] == "SuperValue":
-            iconCol = "red"
-        elif locations.Type[i] == "Countdown Metro":
-            iconCol = "orange"
-        elif locations.Type[i] == "Distribution Centre":
-            iconCol = "black"
-        # add all colour changes to the map
-        folium.CircleMarker(list(reversed(coords[i])),  popup=locations.Store[i],
-                            color=iconCol, radius=6).add_to(akl)
-
-    return coords, akl
-
-
-def Visualise(num_regions):
-    '''
-    This function adds the optimised routes to a map/maps and saves the outcome to html file
-
-    Parameters:
-    ------------
-    num_regions : int
-        Number of regions Akl has been divided into, for use in individual maps
-
-    Returns:
-    ------------
-    None
-    '''
-
-    # Boot up client to OpenRouteService
-    client = ors.Client(key=ORSkey)
-
-    # get current directory for folder navigation
-    directory = os.getcwd()
-
-    # colours to distinguish different routes
-    colours = ['red', 'blue']
-
-    # for the regions in the 'weekday' folder
-    for r in range(1, num_regions+1, 2):
-        # get new map
-        for period in ('weekday', 'weekend'):
-            coords, akl = CreateMap()
-            for reg in (0, 1):
-                # re-set the routes array
-                routes = []
-                # get the path for the file name
-                filename = (directory+os.sep+'results' + os.sep +
-                            period) + (os.sep + 'Routes - Region ' + str(r+reg))
-                # open the file
-                file = open(filename, 'r')
-                # add each line (a single route) to the list of all routes
-                routes += file.readlines()
-                file.close()
-
-                # remove all next line symbols from the end of the arrays
-                routes = [elem.strip('\n') for elem in routes]
-
-                for i in range(0, len(routes)):
-                    # remove the brackets read in from the file as strings, split the string data into individual strings
-                    routes[i] = routes[i].strip('[').strip(']').split(', ')
-                    # convert each string to integer
-                    routes[i] = [int(j) for j in routes[i]]
-
-                # for each route
-                for i in range(0, len(routes)):
-                    # add the route locations to the coordinate list
-                    locii = [coords[-1]]+[coords[node-1]
-                                          for node in routes[i]]+[coords[-1]]
-                    # create the route
-                    route = client.directions(
-                        coordinates=locii, profile='driving-hgv', format='geojson', validate=False)
-                    # add the route to the map
-                    folium.PolyLine(locations=[list(reversed(
-                        coord)) for coord in route['features'][0]['geometry']['coordinates']], color=colours[reg]).add_to(akl)
-
-            # save the finalised visualisation to html file
-            # save title as
-            title = period + "region_" + str(r) + "_" + str(r+1) + ".html"
-            akl.save(title)
-
-
 if __name__ == "__main__":
 
     # True = weekday, False = weekend
@@ -370,5 +257,3 @@ if __name__ == "__main__":
     reg4_lp = optimise_routes(reg4, 4, length, time_period)
     reg5_lp = optimise_routes(reg5, 5, length, time_period)
     reg6_lp = optimise_routes(reg6, 6, length, time_period)
-
-    #Visualise()

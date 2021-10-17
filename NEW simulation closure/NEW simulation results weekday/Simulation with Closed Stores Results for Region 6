@@ -1,5 +1,0 @@
-There are daily freight trucks used on the following routes: [42, 37, 58]
-The average cost for region 6 is: 4865.813103068981
-The lower bound of the 95% percentile interval is:  1622.8080439091136
-The upper bound of the 95% percentile interval is:  8244.90898589201
-The simulated cost of region 6 is greater than our optimised cost 91.10000000000001 % of the time
