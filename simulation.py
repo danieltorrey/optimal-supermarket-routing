@@ -225,16 +225,16 @@ else:
 
 # Get total cost for optimised routing schedule from Part 1
 if time_period == True: 
-    optimised_cost = [3047.00, 2750.47, 3348.99, 2623.63, 3213.96, 3310.85] # weekday solutions
+    optimised_cost = [3047.00, 2750.47, 3348.99, 2623.63, 3213.96, 3310.85, 18294.9] # weekday solutions (last value is sum of all costs)
 else: 
-    optimised_cost = [2190.65, 1570.52, 1861.98, 1205.50, 1819.53, 1814.06] # weekend solutions
+    optimised_cost = [2190.65, 1570.52, 1861.98, 1205.50, 1819.53, 1814.06, 10462.24] # weekend solutions (last value is sum of all costs)
 
 # Initialise arrays for simulations 
 expected_costs = [0] * 1000
 observed_costs = [0] * 1000
 
 # Simulation for each region 
-for i in range(1,7): 
+for i in range(1,8): 
 
     # Set appropriate routes for the region
     if i == 1: 
@@ -249,6 +249,8 @@ for i in range(1,7):
         routes = reg5
     elif i == 6:
         routes = reg6
+    elif i == 7:
+        routes = routes
 
     for j in range(len(observed_costs)):
         # Cost routes
