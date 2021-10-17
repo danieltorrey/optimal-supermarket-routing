@@ -1,5 +1,4 @@
-There are daily freight trucks used on the following routes: [43, 27, 32]
-The average cost for region 5 is: 5680.698139946149
-The lower bound of the 95% percentile interval is:  1735.3225191102242
-The upper bound of the 95% percentile interval is:  8500.369602775729
-The simulated cost of region 5 is greater than our optimised cost 93.2 % of the time
+The average cost for region 5 is: 6465.632966898431
+The lower bound of the 95% percentile interval is:  2629.3483366275195
+The upper bound of the 95% percentile interval is:  9458.756108825177
+The simulated cost of region 5 is greater than our optimised cost 94.19999999999999 % of the time

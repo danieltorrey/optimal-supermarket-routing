@@ -101,7 +101,7 @@ def cost_routes(routes, weekday):
         b = travel_dur * 1.6 - travel_dur * 1.3
 
         # Generate random values from truncated norm distribution 
-        traffic_adj = stats.truncnorm.rvs(a, b, travel_dur * 1.3, 1) / 4
+        traffic_adj = stats.truncnorm.rvs(a, b, travel_dur * 1.3, 1)
 
         # Remove average unloading time for one store
         traffic_adj -= avg_unloading
@@ -128,7 +128,7 @@ def cost_routes(routes, weekday):
         b = DC_travel_dur * 1.6 - DC_travel_dur * 1.3
 
         # Generate random values from truncated norm distribution
-        traffic_adj = stats.truncnorm.rvs(a, b, DC_travel_dur * 1.3, 1) / 4
+        traffic_adj = stats.truncnorm.rvs(a, b, DC_travel_dur * 1.3, 1)
 
         # Add traffic adjustment to travel duration
         DC_travel_dur += traffic_adj 
@@ -201,7 +201,7 @@ def cost_routes(routes, weekday):
 # Run simulation
 
 # Set to True for a weekday, False for a weekend
-time_period = True
+time_period = False
 
 # Get routes 
 routes = get_routes(time_period)
@@ -223,7 +223,6 @@ else:
     reg5 = routes[10:12]
     reg6 = routes[12:14]
     reg7 = routes[0:14]
-
 
 # Get total cost for optimised routing schedule from Part 1
 if time_period == True: 

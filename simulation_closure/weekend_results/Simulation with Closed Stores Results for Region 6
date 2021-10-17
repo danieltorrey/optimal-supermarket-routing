@@ -1,4 +1,4 @@
-The average cost for region 6 is: 1378.0353872491355
-The lower bound of the 95% percentile interval is:  990.2721147663916
-The upper bound of the 95% percentile interval is:  3382.122880809853
-The simulated cost of region 6 is greater than our optimised cost 9.0 % of the time
+The average cost for region 6 is: 1817.6779751470287
+The lower bound of the 95% percentile interval is:  1432.26399702263
+The upper bound of the 95% percentile interval is:  3856.2874861005876
+The simulated cost of region 6 is greater than our optimised cost 41.0 % of the time

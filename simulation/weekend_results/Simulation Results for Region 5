@@ -1,4 +1,4 @@
-The average cost for region 5 is: 1393.2587694901517
-The lower bound of the 95% percentile interval is:  1182.4944938101735
-The upper bound of the 95% percentile interval is:  1615.8946967011902
-The simulated cost of region 5 is greater than our optimised cost 0.1 % of the time
+The average cost for region 5 is: 2090.1850513839195
+The lower bound of the 95% percentile interval is:  1854.2567388090747
+The upper bound of the 95% percentile interval is:  2339.6999511132135
+The simulated cost of region 5 is greater than our optimised cost 98.9 % of the time

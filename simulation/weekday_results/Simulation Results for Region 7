@@ -1,4 +1,5 @@
-The average cost for region 7 is: 28615.600842212185
-The lower bound of the 95% percentile interval is:  20445.453004171413
-The upper bound of the 95% percentile interval is:  37552.20587084408
-The simulated cost of region 7 is greater than our optimised cost 99.2 % of the time
+There are daily freight trucks used on the following routes: [25, 47, 26]
+The average cost for region 7 is: 33757.18442428264
+The lower bound of the 95% percentile interval is:  25621.709370909386
+The upper bound of the 95% percentile interval is:  42745.699049436545
+The simulated cost of region 7 is greater than our optimised cost 100.0 % of the time
