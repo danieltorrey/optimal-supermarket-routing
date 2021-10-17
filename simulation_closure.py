@@ -201,7 +201,7 @@ def cost_routes(routes, weekday):
 # Run simulation
 
 # Set to True for a weekday, False for a weekend
-time_period = False
+time_period = True
 
 # Get routes 
 routes = get_routes(time_period)
@@ -214,6 +214,7 @@ if time_period == True:
     reg4 = routes[10:13]
     reg5 = routes[13:17]
     reg6 = routes[17:21]
+    reg7 = routes[0:21]
 else: 
     reg1 = routes[0:3]
     reg2 = routes[3:5]
@@ -221,20 +222,21 @@ else:
     reg4 = routes[8:10]
     reg5 = routes[10:12]
     reg6 = routes[12:14]
+    reg7 = routes[0:14]
 
 
 # Get total cost for optimised routing schedule from Part 1
 if time_period == True: 
-    optimised_cost = [3047, 2716, 3326, 2624, 3139, 3191] # weekday solutions
+    optimised_cost = [3047, 2716, 3326, 2624, 3139, 3191, 18043] # weekday solutions (last value is total cost)
 else: 
-    optimised_cost = [2191, 1542, 1862, 1206, 1634, 1683] # weekend solutions
+    optimised_cost = [2191, 1542, 1862, 1206, 1634, 1683, 10118] # weekend solutions (last value is total cost) 
 
 # Initialise arrays for simulations 
 expected_costs = [0] * 1000
 observed_costs = [0] * 1000
 
 # Simulation for each region 
-for i in range(1,7): 
+for i in range(1,8): 
 
     # Set appropriate routes for the region
     if i == 1: 
@@ -249,6 +251,8 @@ for i in range(1,7):
         routes = reg5
     elif i == 6:
         routes = reg6
+    elif i == 7:
+        routes = reg7
 
     for j in range(len(observed_costs)):
         # Cost routes
