@@ -1,0 +1,4 @@
+The average cost for region 2 is: 1149.5064549566619
+The lower bound of the 95% percentile interval is:  969.808007215541
+The upper bound of the 95% percentile interval is:  1327.0935935981324
+The simulated cost of region 2 is greater than our optimised cost 0.2 % of the time
