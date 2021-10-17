@@ -219,8 +219,8 @@ else:
     reg2 = routes[3:5]
     reg3 = routes[5:8]
     reg4 = routes[8:10]
-    reg5 = routes[10:13]
-    reg6 = routes[13:16]
+    reg5 = routes[10:12]
+    reg6 = routes[12:14]
 
 
 # Get total cost for optimised routing schedule from Part 1
