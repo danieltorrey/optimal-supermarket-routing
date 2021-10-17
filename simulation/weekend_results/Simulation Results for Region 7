@@ -1,0 +1,4 @@
+The average cost for region 7 is: 7839.204668886401
+The lower bound of the 95% percentile interval is:  7321.1944809177785
+The upper bound of the 95% percentile interval is:  8392.238630231184
+The simulated cost of region 7 is greater than our optimised cost 0.1 % of the time
