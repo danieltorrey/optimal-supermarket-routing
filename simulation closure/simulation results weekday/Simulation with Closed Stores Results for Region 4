@@ -1,5 +1,0 @@
-There are daily freight trucks used on the following routes: [52, 18, 5, 55]
-The average cost for region 4 is: 3801.357169851946
-The lower bound of the 95% percentile interval is:  715.4679143391561
-The upper bound of the 95% percentile interval is:  7458.222329544723
-The simulated cost of region 4 is greater than our optimised cost 83.89999999999999 % of the time
